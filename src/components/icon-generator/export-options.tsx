@@ -19,15 +19,15 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
     setIsDownloading(format)
 
     try {
-      await downloadImage(imageUrl, format)
-      toast.success('下载成功')
+      const success = await downloadImage(imageUrl, format)
+      if (success) {
+        toast.success('开始下载')
+      } else {
+        toast.info('已在新标签页打开图片')
+      }
     } catch (error) {
       console.error(`下载 ${format} 格式失败:`, error)
-      if (error instanceof Error) {
-        toast.error(error.message)
-      } else {
-        toast.error('下载失败，请重试')
-      }
+      toast.error('下载失败，请重试')
     } finally {
       setIsDownloading(null)
     }

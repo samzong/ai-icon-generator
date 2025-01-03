@@ -13,6 +13,7 @@
 
 ## 技术栈
 
+- Node.js >= 20.0.0
 - Next.js 15
 - React 19
 - TypeScript
@@ -20,20 +21,30 @@
 - shadcn/ui
 - OpenAI API
 
+## 系统要求
+
+- Node.js 20.0.0 或更高版本
+- npm 10.0.0 或更高版本（推荐）
+
 ## 开始使用
 
-1. 克隆项目
+1. 确保您的 Node.js 版本符合要求
+```bash
+node --version  # 应该显示 v20.0.0 或更高版本
+```
+
+2. 克隆项目
 ```bash
 git clone https://github.com/yourusername/ai-icon-generator.git
 cd ai-icon-generator
 ```
 
-2. 安装依赖
+3. 安装依赖
 ```bash
 npm install
 ```
 
-3. 配置环境变量
+4. 配置环境变量
 ```bash
 cp .env.example .env
 ```
@@ -41,12 +52,12 @@ cp .env.example .env
 - OPENAI_API_KEY：您的 OpenAI API 密钥
 - OPENAI_API_BASE_URL：API 端点（可选）
 
-4. 启动开发服务器
+5. 启动开发服务器
 ```bash
 npm run dev
 ```
 
-5. 构建生产版本
+6. 构建生产版本
 ```bash
 npm run build
 ```

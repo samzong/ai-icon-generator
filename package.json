@@ -9,6 +9,9 @@
     "type": "git",
     "url": "https://github.com/samzong/ai-icon-generator"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
