@@ -1,24 +1,35 @@
 export async function downloadImage(url: string, format: string) {
   try {
     // 获取图片数据
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      mode: 'cors',  // 启用跨域
+      credentials: 'omit',  // 不发送 cookies
+      headers: {
+        'Accept': 'image/*'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
     const blob = await response.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
 
-    // 创建下载链接
-    const downloadUrl = window.URL.createObjectURL(blob)
+    // 创建临时链接并触发下载
     const link = document.createElement('a')
-    link.href = downloadUrl
-    link.download = `icon.${format}`
-
-    // 触发下载
+    link.href = blobUrl
+    link.download = `icon-${Date.now()}.${format}`
     document.body.appendChild(link)
     link.click()
-    document.body.removeChild(link)
 
     // 清理
-    window.URL.revokeObjectURL(downloadUrl)
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(blobUrl)
   } catch (error) {
-    console.error('Error downloading image:', error)
-    throw error
+    console.error('下载图片失败:', error)
+    // 如果下载失败，提供备选方案
+    window.open(url, '_blank')
+    throw new Error('下载失败，已在新标签页打开图片')
   }
 } 

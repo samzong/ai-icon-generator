@@ -22,11 +22,16 @@ export function PreviewPanel({ imageUrl, isLoading }: PreviewPanelProps) {
           <OptimizedImage
             src={imageUrl}
             alt="Generated icon"
-            fill
-            className="rounded-lg object-contain"
+            className="h-full w-full rounded-lg object-contain"
             fallback={
-              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                加载失败
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-sm text-muted-foreground">
+                <span>图片加载失败</span>
+                <button
+                  onClick={() => window.open(imageUrl, '_blank')}
+                  className="text-xs text-primary hover:underline"
+                >
+                  点击直接查看
+                </button>
               </div>
             }
           />

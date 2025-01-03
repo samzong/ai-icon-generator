@@ -22,15 +22,12 @@ export function IconGenerator() {
     setIsGenerating(true)
     setError(null)
 
-    // 生成缓存键
     const cacheKey = `${prompt}-${style}`
 
     try {
-      // 检查缓存
       const cachedUrl = iconCache.get(cacheKey)
       if (cachedUrl) {
         setImageUrl(cachedUrl)
-        // 添加到历史记录
         iconStorage.addToHistory({
           prompt,
           style,
@@ -53,11 +50,9 @@ export function IconGenerator() {
 
       const data = await response.json()
       
-      // 保存到缓存
       iconCache.set(cacheKey, data.url)
       setImageUrl(data.url)
 
-      // 添加到历史记录
       iconStorage.addToHistory({
         prompt,
         style,
@@ -78,8 +73,8 @@ export function IconGenerator() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
+    <div className="space-y-xl">
+      <div className="space-y-md">
         <PromptInput
           value={prompt}
           onChange={setPrompt}
@@ -89,14 +84,27 @@ export function IconGenerator() {
         <StyleSelector value={style} onChange={setStyle} />
       </div>
       {error && (
-        <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-          {error}
+        <div className="rounded-md bg-error/15 p-md text-sm text-error flex items-center space-x-sm">
+          <svg
+            className="h-4 w-4 shrink-0"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={2}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <span>{error}</span>
         </div>
       )}
       <PreviewPanel imageUrl={imageUrl} isLoading={isGenerating} />
       {imageUrl && <ExportOptions imageUrl={imageUrl} />}
-      <div className="space-y-4">
-        <h2 className="text-lg font-medium">历史记录</h2>
+      <div className="space-y-md">
+        <h2 className="text-xl font-medium text-primary-800 dark:text-primary-200">历史记录</h2>
         <HistoryPanel onSelect={handleHistorySelect} />
       </div>
     </div>

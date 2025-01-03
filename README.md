@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Icon Generator
 
-## Getting Started
+基于 OpenAI DALL-E 3 的专业图标生成工具。
 
-First, run the development server:
+## 特性
 
+- 🎨 使用 DALL-E 3 生成高质量图标
+- 🎯 支持多种图标风格
+- 💾 支持多种导出格式
+- 🌓 支持深色/浅色主题
+- 📱 响应式设计
+- ⚡️ 快速生成和预览
+
+## 技术栈
+
+- Next.js 15
+- React 19
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- OpenAI API
+
+## 开始使用
+
+1. 克隆项目
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/yourusername/ai-icon-generator.git
+cd ai-icon-generator
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. 安装依赖
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. 配置环境变量
+```bash
+cp .env.example .env
+```
+然后编辑 `.env` 文件，添加必要的配置：
+- OPENAI_API_KEY：您的 OpenAI API 密钥
+- OPENAI_API_BASE_URL：API 端点（可选）
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. 启动开发服务器
+```bash
+npm run dev
+```
 
-## Learn More
+5. 构建生产版本
+```bash
+npm run build
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 使用方法
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. 输入图标描述
+2. 选择图标风格
+3. 点击生成按钮
+4. 等待生成完成
+5. 下载所需格式
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 许可证
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT License

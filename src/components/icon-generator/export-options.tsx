@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { imageConfig } from "@/config/site"
 import { downloadImage } from "@/lib/download"
 import { ReloadIcon } from "@radix-ui/react-icons"
+import { toast } from "sonner"
 
 interface ExportOptionsProps {
   imageUrl: string
@@ -19,8 +20,14 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
 
     try {
       await downloadImage(imageUrl, format)
+      toast.success('下载成功')
     } catch (error) {
-      console.error(`Error downloading ${format}:`, error)
+      console.error(`下载 ${format} 格式失败:`, error)
+      if (error instanceof Error) {
+        toast.error(error.message)
+      } else {
+        toast.error('下载失败，请重试')
+      }
     } finally {
       setIsDownloading(null)
     }
