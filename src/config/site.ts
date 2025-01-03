@@ -4,7 +4,7 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_APP_URL,
   ogImage: "https://ui.shadcn.com/og.jpg",
   links: {
-    github: "https://github.com/samzong/nextjs-demo",
+    github: "https://github.com/samzong/ai-icon-generator",
   },
 }
 
