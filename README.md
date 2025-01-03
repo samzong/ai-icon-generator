@@ -4,7 +4,7 @@
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsamzong%2Fai-icon-generator&env=OPENAI_API_KEY,OPENAI_API_BASE_URL,NODE_VERSION&envDescription=API%20密钥和端点配置&envLink=https%3A%2F%2Fgithub.com%2Fsamzong%2Fai-icon-generator%23%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F&project-name=ai-icon-generator&repository-name=ai-icon-generator&demo-title=AI%20Icon%20Generator&demo-description=基于%20OpenAI%20DALL-E%203%20的专业图标生成工具&demo-url=https%3A%2F%2Fai-icon-generator.vercel.app&demo-image=https%3A%2F%2Fraw.githubusercontent.com%2Fsamzong%2Fai-icon-generator%2Fmain%2Fpublic%2Fdemo.png)
 
-[在线预览](https://ai-icon-generator.vercel.app)
+[在线预览](https://ai-icon-generator-fawn.vercel.app)
 
 ## 特性
 
