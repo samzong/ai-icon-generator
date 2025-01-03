@@ -41,7 +41,7 @@ node --version  # 应该显示 v20.0.0 或更高版本
 
 2. 克隆项目
 ```bash
-git clone https://github.com/yourusername/ai-icon-generator.git
+git clone https://github.com/samzong/ai-icon-generator.git
 cd ai-icon-generator
 ```
 
@@ -57,7 +57,6 @@ cp .env.example .env
 然后编辑 `.env` 文件，添加必要的配置：
 - OPENAI_API_KEY：您的 OpenAI API 密钥
 - OPENAI_API_BASE_URL：API 端点（可选）
-- NODE_VERSION：v20.11.0（确保 Node.js 版本）
 
 ## 使用 DALL-E 代理
 
