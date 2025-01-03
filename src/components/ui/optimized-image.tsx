@@ -1,10 +1,18 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 
-interface OptimizedImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface OptimizedImageProps {
+  src: string
+  alt?: string
+  className?: string
   fallback?: React.ReactNode
+  fill?: boolean
+  onClick?: () => void
+  width?: number
+  height?: number
 }
 
 export function OptimizedImage({
@@ -12,6 +20,10 @@ export function OptimizedImage({
   alt,
   className,
   fallback,
+  fill = true,
+  width,
+  height,
+  onClick,
   ...props
 }: OptimizedImageProps) {
   const [isLoading, setIsLoading] = React.useState(true)
@@ -52,18 +64,24 @@ export function OptimizedImage({
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div 
+      className={cn("relative h-full w-full", className)}
+      onClick={onClick}
+    >
       {src && (
-        <img
+        <Image
           src={src}
           alt={alt || ""}
+          fill={fill}
+          width={!fill ? width : undefined}
+          height={!fill ? height : undefined}
           className={cn(
-            "h-full w-full transition-opacity duration-300",
-            isLoading ? "opacity-0" : "opacity-100",
-            props.className
+            "object-contain transition-opacity duration-300",
+            isLoading ? "opacity-0" : "opacity-100"
           )}
-          onLoad={handleLoad}
+          onLoadingComplete={handleLoad}
           onError={handleError}
+          unoptimized
           {...props}
         />
       )}
