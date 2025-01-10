@@ -1,16 +1,30 @@
 import OpenAI from "openai"
 import { APIError } from "openai/error"
+import { getCustomApiKey } from "./storage"
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing OPENAI_API_KEY environment variable")
 }
 
-// 创建 OpenAI 客户端实例
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_API_BASE_URL,
-  maxRetries: 3,
-})
+let openaiInstance: OpenAI | null = null
+
+export function getOpenAIClient() {
+  const customApiKey = getCustomApiKey()
+  
+  // 如果已经有实例且使用的是自定义 key，检查 key 是否变化
+  if (openaiInstance?.apiKey === customApiKey) {
+    return openaiInstance
+  }
+
+  // 创建新的 OpenAI 客户端实例
+  openaiInstance = new OpenAI({
+    apiKey: customApiKey || process.env.OPENAI_API_KEY,
+    baseURL: process.env.OPENAI_API_BASE_URL,
+    maxRetries: 3,
+  })
+
+  return openaiInstance
+}
 
 // 添加延迟函数
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -23,7 +37,8 @@ export async function generateIcon(prompt: string, style: string) {
     try {
       const enhancedPrompt = `Create a professional icon with ${style} style. ${prompt}. Make it simple, memorable, and suitable as an app icon or logo. Use appropriate colors and ensure it's visually balanced.`
 
-      const response = await openai.images.generate({
+      const client = getOpenAIClient()
+      const response = await client.images.generate({
         model: "dall-e-3",
         prompt: enhancedPrompt,
         n: 1,

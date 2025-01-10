@@ -58,3 +58,22 @@ class IconStorage {
 }
 
 export const iconStorage = new IconStorage() 
+
+const STORAGE_KEYS = {
+  CUSTOM_API_KEY: 'custom_openai_api_key',
+} as const
+
+export function getCustomApiKey(): string | null {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem(STORAGE_KEYS.CUSTOM_API_KEY)
+}
+
+export function setCustomApiKey(apiKey: string): void {
+  if (typeof window === 'undefined') return
+  localStorage.setItem(STORAGE_KEYS.CUSTOM_API_KEY, apiKey)
+}
+
+export function removeCustomApiKey(): void {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem(STORAGE_KEYS.CUSTOM_API_KEY)
+} 
