@@ -7,6 +7,31 @@ export interface HistoryItem {
   isFavorite: boolean
 }
 
+// Utility function to generate UUID that works in both browser and Node.js
+function generateUUID(): string {
+  // Use crypto.getRandomValues() which has better browser support
+  if (typeof window !== "undefined" && window.crypto) {
+    const array = new Uint8Array(16);
+    window.crypto.getRandomValues(array);
+    // Set version (4) and variant (2) bits
+    array[6] = (array[6] & 0x0f) | 0x40;
+    array[8] = (array[8] & 0x3f) | 0x80;
+    
+    // Convert to hex string
+    return Array.from(array)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('')
+      .replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+  }
+  
+  // Fallback for older browsers
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0;
+    const v = c === 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 class IconStorage {
   private readonly HISTORY_KEY = "icon_history"
   private readonly MAX_HISTORY = 50
@@ -19,9 +44,27 @@ class IconStorage {
 
   addToHistory(item: Omit<HistoryItem, "id" | "timestamp" | "isFavorite">) {
     const history = this.getHistory()
+    
+    // 检查是否存在相同的图片
+    const existingIndex = history.findIndex((h) => h.imageUrl === item.imageUrl)
+    
+    if (existingIndex !== -1) {
+      // 如果存在，更新时间戳并移到最前面
+      const existing = history[existingIndex]
+      history.splice(existingIndex, 1)
+      const updatedItem = {
+        ...existing,
+        timestamp: Date.now(),
+      }
+      history.unshift(updatedItem)
+      localStorage.setItem(this.HISTORY_KEY, JSON.stringify(history))
+      return updatedItem
+    }
+
+    // 如果不存在，添加新记录
     const newItem: HistoryItem = {
       ...item,
-      id: crypto.randomUUID(),
+      id: generateUUID(),
       timestamp: Date.now(),
       isFavorite: false,
     }
