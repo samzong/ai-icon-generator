@@ -44,6 +44,24 @@ class IconStorage {
 
   addToHistory(item: Omit<HistoryItem, "id" | "timestamp" | "isFavorite">) {
     const history = this.getHistory()
+    
+    // 检查是否存在相同的图片
+    const existingIndex = history.findIndex((h) => h.imageUrl === item.imageUrl)
+    
+    if (existingIndex !== -1) {
+      // 如果存在，更新时间戳并移到最前面
+      const existing = history[existingIndex]
+      history.splice(existingIndex, 1)
+      const updatedItem = {
+        ...existing,
+        timestamp: Date.now(),
+      }
+      history.unshift(updatedItem)
+      localStorage.setItem(this.HISTORY_KEY, JSON.stringify(history))
+      return updatedItem
+    }
+
+    // 如果不存在，添加新记录
     const newItem: HistoryItem = {
       ...item,
       id: generateUUID(),

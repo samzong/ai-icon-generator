@@ -6,6 +6,13 @@ import { imageConfig } from "@/config/site"
 import { downloadImage } from "@/lib/download"
 import { ReloadIcon } from "@radix-ui/react-icons"
 import { toast } from "sonner"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface ExportOptionsProps {
   imageUrl: string
@@ -13,13 +20,19 @@ interface ExportOptionsProps {
 
 export function ExportOptions({ imageUrl }: ExportOptionsProps) {
   const [isDownloading, setIsDownloading] = React.useState<string | null>(null)
+  const [shape, setShape] = React.useState<typeof imageConfig.shapes[number]>("square")
+  const [background, setBackground] = React.useState<typeof imageConfig.backgrounds[number]>("transparent")
 
   const handleDownload = async (format: typeof imageConfig.formats[number]) => {
     if (isDownloading) return
     setIsDownloading(format)
 
     try {
-      const success = await downloadImage(imageUrl, format)
+      const success = await downloadImage(imageUrl, {
+        format,
+        shape,
+        background,
+      })
       if (success) {
         toast.success('开始下载')
       } else {
@@ -36,6 +49,37 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
   return (
     <div className="space-y-4">
       <h3 className="font-medium">导出选项</h3>
+      <div className="flex flex-wrap gap-4">
+        <div className="space-y-2">
+          <label className="text-sm text-muted-foreground">形状</label>
+          <Select value={shape} onValueChange={(value: typeof imageConfig.shapes[number]) => setShape(value)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="square">正方形</SelectItem>
+              <SelectItem value="rounded">圆角</SelectItem>
+              <SelectItem value="circle">圆形</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="space-y-2">
+          <label className="text-sm text-muted-foreground">背景</label>
+          <Select value={background} onValueChange={(value: typeof imageConfig.backgrounds[number]) => setBackground(value)}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="transparent">透明</SelectItem>
+              <SelectItem value="white">白色</SelectItem>
+              <SelectItem value="black">黑色</SelectItem>
+              <SelectItem value="auto">自动</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      
       <div className="flex flex-wrap gap-2">
         {imageConfig.formats.map((format) => (
           <Button
