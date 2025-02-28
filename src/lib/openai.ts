@@ -39,7 +39,7 @@ export async function generateIcon(prompt: string, style: string) {
 
       const client = getOpenAIClient()
       const response = await client.images.generate({
-        model: "dall-e-3",
+        model: process.env.MODEL_NAME,
         prompt: enhancedPrompt,
         n: 1,
         size: "1024x1024",
