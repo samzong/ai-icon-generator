@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
 
-export async function GET(request: NextRequest) {
-  // 从请求头中获取速率限制信息
-  const headers = request.headers
-  
+export async function GET() {
   // 尝试从响应头中获取速率限制信息
   // 这些信息是由中间件添加的
   const rateLimitInfo = {
