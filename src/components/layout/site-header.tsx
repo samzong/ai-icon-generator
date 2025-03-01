@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ChangeEvent } from "react"
+import { Github } from "lucide-react"
 
 import { siteConfig } from "@/config/site"
 
@@ -87,6 +88,12 @@ export function SiteHeader() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          <Link href={siteConfig.links.github} target="_blank" rel="noopener noreferrer">
+            <Button variant="ghost" size="icon" className="mr-1">
+              <Github className="h-[1.2rem] w-[1.2rem]" />
+              <span className="sr-only">GitHub</span>
+            </Button>
+          </Link>
           <ThemeToggle />
         </div>
       </div>
