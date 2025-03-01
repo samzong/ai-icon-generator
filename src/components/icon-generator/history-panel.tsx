@@ -85,6 +85,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
                 src={item.imageUrl}
                 alt={item.prompt}
                 fill
+                noRetry={true}
                 className="cursor-pointer rounded-md object-contain"
                 onClick={() => onSelect(item)}
               />

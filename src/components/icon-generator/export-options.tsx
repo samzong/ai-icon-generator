@@ -4,7 +4,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { imageConfig } from "@/config/site"
 import { downloadImage } from "@/lib/download"
-import { ReloadIcon } from "@radix-ui/react-icons"
+import { ReloadIcon, InfoCircledIcon } from "@radix-ui/react-icons"
 import { toast } from "sonner"
 import {
   Select,
@@ -48,7 +48,23 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-medium">导出选项</h3>
+      <div className="flex items-start justify-between">
+        <h3 className="font-medium">导出选项</h3>
+      </div>
+      
+      <div className="rounded-md bg-blue-50 dark:bg-blue-900/30 p-3">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <InfoCircledIcon className="h-5 w-5 text-blue-500 dark:text-blue-400" aria-hidden="true" />
+          </div>
+          <div className="ml-3 flex-1">
+            <p className="text-sm text-blue-700 dark:text-blue-300">
+              不同平台生成的图片保留时间不一致，请尽快下载保存到本地。过期的图片链接将无法访问。
+            </p>
+          </div>
+        </div>
+      </div>
+      
       <div className="flex flex-wrap gap-4">
         <div className="space-y-2">
           <label className="text-sm text-muted-foreground">形状</label>
