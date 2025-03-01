@@ -11,6 +11,7 @@ interface PromptInputProps {
   onChange: (value: string) => void
   onGenerate: () => void
   isGenerating: boolean
+  isDisabled?: boolean
 }
 
 export function PromptInput({
@@ -18,6 +19,7 @@ export function PromptInput({
   onChange,
   onGenerate,
   isGenerating,
+  isDisabled = false,
 }: PromptInputProps) {
   const handleSuggestion = () => {
     onChange(getRandomSuggestion())
@@ -68,7 +70,7 @@ export function PromptInput({
       <div className="flex justify-end">
         <Button
           onClick={onGenerate}
-          disabled={!value || isGenerating}
+          disabled={!value || isGenerating || isDisabled}
         >
           {isGenerating && (
             <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
