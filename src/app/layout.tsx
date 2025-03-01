@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/layout/site-header";
+import { RateLimitStatus } from "@/components/RateLimitStatus";
 import { Analytics } from "@vercel/analytics/react";
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function RootLayout({
         >
           <div className="min-h-screen bg-background">
             <SiteHeader />
+            <RateLimitStatus />
             <main className="container mx-auto py-6">{children}</main>
           </div>
         </ThemeProvider>
