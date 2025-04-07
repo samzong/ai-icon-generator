@@ -35,7 +35,7 @@ export async function generateIcon(prompt: string, style: string) {
 
   while (attempt < maxRetries) {
     try {
-      const enhancedPrompt = `Create a professional icon with ${style} style. ${prompt}. Make it simple, memorable, and suitable as an app icon or logo. Use appropriate colors and ensure it's visually balanced.`
+      const enhancedPrompt = `"Create a professional macOS app icon with a ${style} style (e.g., modern, minimalist, flat). The icon should represent a single, unique, and memorable subject based on the user's simple and concise description: '${prompt}', which represents the main theme or element of the icon. The icon must be centered, isolated on a fully transparent background, with NO frames, borders, or UI elements around it. Ensure the design is simple, with NO additional decorative elements, and suitable as a macOS app icon or GitHub project logo. The icon should be easily recognizable even at small sizes. Use a cohesive color palette with 2-3 appropriate colors (e.g., shades of blue, gray, or green to suggest technology and professionalism) and maintain visual balance. The final image must be exactly 1024x1024 pixels in resolution, high-quality, and contain ONLY the icon itself with NOTHING else, ensuring it is ready for immediate use in macOS and GitHub contexts."`
 
       const client = getOpenAIClient()
       const response = await client.images.generate({
