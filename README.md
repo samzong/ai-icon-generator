@@ -1,4 +1,5 @@
 # AI Icon Generator
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/samzong/ai-icon-generator)
 
 基于 OpenAI DALL-E 3 的专业图标生成工具。
 
