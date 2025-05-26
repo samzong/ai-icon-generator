@@ -25,6 +25,12 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
 
   const handleDownload = async (format: typeof imageConfig.formats[number]) => {
     if (isDownloading) return
+    
+    if (!imageUrl) {
+      toast.error('No images to download')
+      return
+    }
+
     setIsDownloading(format)
 
     try {
@@ -34,13 +40,27 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
         background,
       })
       if (success) {
-        toast.success('开始下载')
+        toast.success(`${format.toUpperCase()} 格式下载成功`)
       } else {
-        toast.info('已在新标签页打开图片')
+        toast.info('已在新标签页打开图片，请手动保存')
       }
     } catch (error) {
       console.error(`下载 ${format} 格式失败:`, error)
-      toast.error('下载失败，请重试')
+      
+      // Simplified error handling
+      if (error instanceof Error) {
+        if (error.message.includes('图片URL为空')) {
+          toast.error('没有可下载的图片，请先生成图片')
+        } else if (error.message.includes('无效的图片URL格式') || error.message.includes('不支持的URL类型')) {
+          toast.error('图片链接格式无效，请重新生成图片')
+        } else if (error.message.includes('timeout')) {
+          toast.error('请求超时，请重试')
+        } else {
+          toast.error('下载失败，请重试')
+        }
+      } else {
+        toast.error('下载失败，请重试')
+      }
     } finally {
       setIsDownloading(null)
     }
