@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: '**.feiyuyu.net',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.d.run',
       }
     ],
   },

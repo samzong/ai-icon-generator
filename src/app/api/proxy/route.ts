@@ -5,7 +5,7 @@ async function handleProxyRequest(url: string): Promise<NextResponse> {
   let targetUrl: URL
   try {
     targetUrl = new URL(url)
-  } catch (error) {
+  } catch {
     return new NextResponse('Invalid URL format', { status: 400 })
   }
 
@@ -99,7 +99,7 @@ export async function POST(request: Request) {
 }
 
 // Add OPTIONS method support for CORS preflight requests
-export async function OPTIONS(request: Request) {
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {

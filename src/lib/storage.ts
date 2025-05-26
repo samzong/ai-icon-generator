@@ -35,21 +35,111 @@ function generateUUID(): string {
 class IconStorage {
   private readonly HISTORY_KEY = "icon_history"
   private readonly MAX_HISTORY = 50
+  private readonly MAX_STORAGE_SIZE = 4 * 1024 * 1024 // 4MB limit to stay safe
+
+  // Check if localStorage has enough space
+  private checkStorageQuota(data: string): boolean {
+    try {
+      // Estimate current localStorage usage
+      let totalSize = 0
+      for (const key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          totalSize += localStorage[key].length + key.length
+        }
+      }
+      
+      // Add the size of new data
+      const newDataSize = data.length + this.HISTORY_KEY.length
+      return (totalSize + newDataSize) < this.MAX_STORAGE_SIZE
+    } catch {
+      return false
+    }
+  }
+
+  // Clean old items to make space
+  private cleanupStorage(): void {
+    const history = this.getHistory()
+    if (history.length === 0) return
+
+    // Remove oldest non-favorite items first
+    const nonFavorites = history.filter(item => !item.isFavorite)
+    const favorites = history.filter(item => item.isFavorite)
+    
+    // Keep only the most recent 20 non-favorites and all favorites
+    const cleanedHistory = [
+      ...nonFavorites.slice(0, 20),
+      ...favorites
+    ].sort((a, b) => b.timestamp - a.timestamp)
+
+    try {
+      localStorage.setItem(this.HISTORY_KEY, JSON.stringify(cleanedHistory))
+    } catch {
+      // If still failing, keep only favorites
+      try {
+        localStorage.setItem(this.HISTORY_KEY, JSON.stringify(favorites.slice(0, 10)))
+      } catch {
+        // Last resort: clear all history
+        this.clearHistory()
+      }
+    }
+  }
+
+  // Safe localStorage setItem with quota handling
+  private safeSetItem(key: string, value: string): boolean {
+    try {
+      // Check quota before attempting to store
+      if (!this.checkStorageQuota(value)) {
+        this.cleanupStorage()
+        
+        // Try again after cleanup
+        if (!this.checkStorageQuota(value)) {
+          console.warn('Storage quota still exceeded after cleanup')
+          return false
+        }
+      }
+
+      localStorage.setItem(key, value)
+      return true
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+        console.warn('Storage quota exceeded, attempting cleanup...')
+        this.cleanupStorage()
+        
+        // Try one more time after cleanup
+        try {
+          localStorage.setItem(key, value)
+          return true
+        } catch {
+          console.error('Failed to store data even after cleanup')
+          return false
+        }
+      }
+      console.error('Storage error:', error)
+      return false
+    }
+  }
 
   getHistory(): HistoryItem[] {
     if (typeof window === "undefined") return []
-    const data = localStorage.getItem(this.HISTORY_KEY)
-    return data ? JSON.parse(data) : []
+    try {
+      const data = localStorage.getItem(this.HISTORY_KEY)
+      return data ? JSON.parse(data) : []
+    } catch (error) {
+      console.error('Failed to parse history data:', error)
+      // Clear corrupted data
+      this.clearHistory()
+      return []
+    }
   }
 
   addToHistory(item: Omit<HistoryItem, "id" | "timestamp" | "isFavorite">) {
     const history = this.getHistory()
     
-    // 检查是否存在相同的图片
+    // Check if the same image already exists
     const existingIndex = history.findIndex((h) => h.imageUrl === item.imageUrl)
     
     if (existingIndex !== -1) {
-      // 如果存在，更新时间戳并移到最前面
+      // If exists, update timestamp and move to front
       const existing = history[existingIndex]
       history.splice(existingIndex, 1)
       const updatedItem = {
@@ -57,11 +147,16 @@ class IconStorage {
         timestamp: Date.now(),
       }
       history.unshift(updatedItem)
-      localStorage.setItem(this.HISTORY_KEY, JSON.stringify(history))
+      
+      const success = this.safeSetItem(this.HISTORY_KEY, JSON.stringify(history))
+      if (!success) {
+        console.warn('Failed to update history item')
+        return existing // Return original item if storage fails
+      }
       return updatedItem
     }
 
-    // 如果不存在，添加新记录
+    // If not exists, add new record
     const newItem: HistoryItem = {
       ...item,
       id: generateUUID(),
@@ -69,15 +164,22 @@ class IconStorage {
       isFavorite: false,
     }
 
-    // 添加到历史记录开头
+    // Add to the beginning of history
     const updatedHistory = [newItem, ...history]
     
-    // 限制历史记录数量
+    // Limit history count
     if (updatedHistory.length > this.MAX_HISTORY) {
       updatedHistory.pop()
     }
 
-    localStorage.setItem(this.HISTORY_KEY, JSON.stringify(updatedHistory))
+    const success = this.safeSetItem(this.HISTORY_KEY, JSON.stringify(updatedHistory))
+    if (!success) {
+      console.warn('Failed to add new history item')
+      // Try to add without the oldest items
+      const reducedHistory = [newItem, ...history.slice(0, Math.floor(this.MAX_HISTORY / 2))]
+      this.safeSetItem(this.HISTORY_KEY, JSON.stringify(reducedHistory))
+    }
+    
     return newItem
   }
 
@@ -86,37 +188,138 @@ class IconStorage {
     const updatedHistory = history.map((item) =>
       item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
     )
-    localStorage.setItem(this.HISTORY_KEY, JSON.stringify(updatedHistory))
+    
+    const success = this.safeSetItem(this.HISTORY_KEY, JSON.stringify(updatedHistory))
+    if (!success) {
+      console.warn('Failed to toggle favorite status')
+    }
   }
 
   removeFromHistory(id: string) {
     const history = this.getHistory()
     const updatedHistory = history.filter((item) => item.id !== id)
-    localStorage.setItem(this.HISTORY_KEY, JSON.stringify(updatedHistory))
+    
+    const success = this.safeSetItem(this.HISTORY_KEY, JSON.stringify(updatedHistory))
+    if (!success) {
+      console.warn('Failed to remove history item')
+    }
   }
 
   clearHistory() {
-    localStorage.removeItem(this.HISTORY_KEY)
+    try {
+      localStorage.removeItem(this.HISTORY_KEY)
+    } catch (error) {
+      console.error('Failed to clear history:', error)
+    }
+  }
+
+  // Get storage usage info for debugging
+  getStorageInfo() {
+    if (typeof window === "undefined") return null
+    
+    try {
+      let totalSize = 0
+      let historySize = 0
+      
+      for (const key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          const itemSize = localStorage[key].length + key.length
+          totalSize += itemSize
+          if (key === this.HISTORY_KEY) {
+            historySize = itemSize
+          }
+        }
+      }
+      
+      return {
+        totalSize,
+        historySize,
+        historyCount: this.getHistory().length,
+        maxSize: this.MAX_STORAGE_SIZE,
+        usage: (totalSize / this.MAX_STORAGE_SIZE * 100).toFixed(2) + '%'
+      }
+    } catch {
+      return null
+    }
   }
 }
 
 export const iconStorage = new IconStorage() 
 
 const STORAGE_KEYS = {
-  CUSTOM_API_KEY: 'custom_openai_api_key',
+  API_PROVIDER_CONFIG: 'api_provider_config',
 } as const
 
-export function getCustomApiKey(): string | null {
-  if (typeof window === 'undefined') return null
-  return localStorage.getItem(STORAGE_KEYS.CUSTOM_API_KEY)
+// API Provider types
+export type ApiProvider = 'default' | 'openai' | 'free-dall-e-proxy' | 'console-d-run'
+
+export interface ApiProviderConfig {
+  apiKey: string
+  baseUrl?: string
+  model?: string
 }
 
-export function setCustomApiKey(apiKey: string): void {
-  if (typeof window === 'undefined') return
-  localStorage.setItem(STORAGE_KEYS.CUSTOM_API_KEY, apiKey)
+export interface ApiConfig {
+  selectedProvider: ApiProvider
+  providers: Record<ApiProvider, ApiProviderConfig>
 }
 
-export function removeCustomApiKey(): void {
+// Default configuration
+const DEFAULT_API_CONFIG: ApiConfig = {
+  selectedProvider: 'default',
+  providers: {
+    'default': {
+      apiKey: '',
+      baseUrl: '',
+      model: '',
+    },
+    'openai': {
+      apiKey: '',
+      baseUrl: 'https://api.openai.com/v1',
+      model: 'gpt-image-1',
+    },
+    'free-dall-e-proxy': {
+      apiKey: '',
+      baseUrl: 'https://dalle.feiyuyu.net/v1',
+      model: 'gpt-image-1',
+    },
+    'console-d-run': {
+      apiKey: '',
+      baseUrl: 'https://chat.d.run',
+      model: 'public/hidream-i1-dev',
+    }
+  }
+}
+
+// New API configuration functions
+export function getApiConfig(): ApiConfig {
+  if (typeof window === 'undefined') return DEFAULT_API_CONFIG
+  
+  const stored = localStorage.getItem(STORAGE_KEYS.API_PROVIDER_CONFIG)
+  if (!stored) return DEFAULT_API_CONFIG
+  
+  try {
+    const parsed = JSON.parse(stored)
+    // Merge with defaults to ensure all providers exist
+    return {
+      ...DEFAULT_API_CONFIG,
+      ...parsed,
+      providers: {
+        ...DEFAULT_API_CONFIG.providers,
+        ...parsed.providers
+      }
+    }
+  } catch {
+    return DEFAULT_API_CONFIG
+  }
+}
+
+export function setApiConfig(config: ApiConfig): void {
   if (typeof window === 'undefined') return
-  localStorage.removeItem(STORAGE_KEYS.CUSTOM_API_KEY)
+  localStorage.setItem(STORAGE_KEYS.API_PROVIDER_CONFIG, JSON.stringify(config))
+}
+
+export function getSelectedProviderConfig(): ApiProviderConfig {
+  const config = getApiConfig()
+  return config.providers[config.selectedProvider]
 } 
