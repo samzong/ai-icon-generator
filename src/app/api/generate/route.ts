@@ -22,9 +22,17 @@ export async function POST(request: Request) {
       return new NextResponse("Invalid style", { status: 400 })
     }
 
-    const imageUrl = await generateIcon(prompt, style)
+    const result = await generateIcon(prompt, style)
 
-    return NextResponse.json({ url: imageUrl })
+    if (result.format === 'url' && result.url) {
+      return NextResponse.json({ url: result.url })
+    } else if (result.format === 'base64' && result.base64) {
+      // Convert base64 to data URL
+      const dataUrl = `data:image/png;base64,${result.base64}`
+      return NextResponse.json({ url: dataUrl })
+    } else {
+      throw new Error("Invalid response format from generateIcon")
+    }
   } catch (error) {
     console.error("Error in generate route:", error)
     return new NextResponse("Internal Server Error", { status: 500 })

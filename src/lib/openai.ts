@@ -11,12 +11,10 @@ let openaiInstance: OpenAI | null = null
 export function getOpenAIClient() {
   const customApiKey = getCustomApiKey()
   
-  // 如果已经有实例且使用的是自定义 key，检查 key 是否变化
   if (openaiInstance?.apiKey === customApiKey) {
     return openaiInstance
   }
 
-  // 创建新的 OpenAI 客户端实例
   openaiInstance = new OpenAI({
     apiKey: customApiKey || process.env.OPENAI_API_KEY,
     baseURL: process.env.OPENAI_API_BASE_URL,
@@ -26,67 +24,99 @@ export function getOpenAIClient() {
   return openaiInstance
 }
 
-// 添加延迟函数
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-export async function generateIcon(prompt: string, style: string) {
+export interface GenerateIconResult {
+  url?: string
+  base64?: string
+  format: 'url' | 'base64'
+}
+
+export async function generateIcon(
+  prompt: string, 
+  style: string,
+  options: {
+    responseFormat?: 'url' | 'b64_json'
+    size?: '256x256' | '512x512' | '1024x1024'
+  } = {}
+): Promise<GenerateIconResult> {
   const maxRetries = 3
   let attempt = 0
 
+  const {
+    responseFormat = 'url',
+    size = '1024x1024',
+  } = options
+
   while (attempt < maxRetries) {
     try {
-      const enhancedPrompt = `"Create a professional macOS app icon with a ${style} style (e.g., modern, minimalist, flat). The icon should represent a single, unique, and memorable subject based on the user's simple and concise description: '${prompt}', which represents the main theme or element of the icon. The icon must be centered, isolated on a fully transparent background, with NO frames, borders, or UI elements around it. Ensure the design is simple, with NO additional decorative elements, and suitable as a macOS app icon or GitHub project logo. The icon should be easily recognizable even at small sizes. Use a cohesive color palette with 2-3 appropriate colors (e.g., shades of blue, gray, or green to suggest technology and professionalism) and maintain visual balance. The final image must be exactly 1024x1024 pixels in resolution, high-quality, and contain ONLY the icon itself with NOTHING else, ensuring it is ready for immediate use in macOS and GitHub contexts."`
+      const enhancedPrompt = `"Create a professional macOS app icon with a ${style} style (e.g., modern, minimalist, flat). The icon should represent a single, unique, and memorable subject based on the user's simple and concise description: '${prompt}', which represents the main theme or element of the icon. The icon must be centered, isolated on a fully transparent background, with NO frames, borders, or UI elements around it. Ensure the design is simple, with NO additional decorative elements, and suitable as a macOS app icon or GitHub project logo. The icon should be easily recognizable even at small sizes. Use a cohesive color palette with 2-3 appropriate colors (e.g., shades of blue, gray, or green to suggest technology and professionalism) and maintain visual balance. The final image must be exactly ${size} pixels in resolution, high-quality, and contain ONLY the icon itself with NOTHING else, ensuring it is ready for immediate use in macOS and GitHub contexts."`
 
       const client = getOpenAIClient()
-      const response = await client.images.generate({
+      
+      const requestParams: any = {
         model: process.env.MODEL_NAME,
         prompt: enhancedPrompt,
-        n: 1,
-        size: "1024x1024",
-        quality: "standard",
-        response_format: "url",
-      })
-
-      if (!response.data?.[0]?.url) {
-        throw new Error("无效的 API 响应")
+        size: size,
       }
 
-      return response.data[0].url
+      if (responseFormat && process.env.OPENAI_API_BASE_URL?.includes('openai.com')) {
+        requestParams.response_format = responseFormat
+      }
+
+      const response = await client!.images.generate(requestParams)
+
+      if (!response.data?.[0]) {
+        throw new Error("invalid api response")
+      }
+
+      const imageData = response.data[0]
+
+      if (imageData.url) {
+        return {
+          url: imageData.url,
+          format: 'url'
+        }
+      } else if (imageData.b64_json) {
+        return {
+          base64: imageData.b64_json,
+          format: 'base64'
+        }
+      } else {
+        throw new Error("no image data found in api response")
+      }
+
     } catch (error) {
       attempt++
-      console.error(`尝试 ${attempt}/${maxRetries} 失败:`, error)
+      console.error(`try ${attempt}/${maxRetries} failed:`, error)
 
       if (error instanceof APIError) {
-        // 处理特定的 API 错误
         switch (error.status) {
           case 401:
-            throw new Error("API 密钥无效，请检查配置")
+            throw new Error("invalid api key")
           case 429:
             if (attempt < maxRetries) {
-              // 如果是速率限制错误，等待后重试
               const retryAfter = error.headers?.['retry-after'] 
                 ? parseInt(error.headers['retry-after']) * 1000 
                 : attempt * 2000
               await delay(retryAfter)
               continue
             }
-            throw new Error("已超过 API 调用限制，请稍后重试")
+            throw new Error("rate limit exceeded")
           case 500:
           case 502:
           case 503:
           case 504:
             if (attempt < maxRetries) {
-              // 服务器错误，等待后重试
               await delay(attempt * 2000)
               continue
             }
-            throw new Error("OpenAI 服务暂时不可用，请稍后重试")
+            throw new Error("server error")
           default:
-            throw new Error(`OpenAI API 错误: ${error.message}`)
+            throw new Error(`api error: ${error.message}`)
         }
       }
 
-      // 处理网络错误
       if (error instanceof Error) {
         const errorMessage = error.message.toLowerCase()
         if (errorMessage.includes('econnreset') || 
@@ -97,14 +127,13 @@ export async function generateIcon(prompt: string, style: string) {
             await delay(attempt * 2000)
             continue
           }
-          throw new Error("网络连接不稳定，请检查网络后重试")
+          throw new Error("network error")
         }
       }
 
-      // 其他错误直接抛出
-      throw new Error("生成图标失败，请稍后重试")
+      throw new Error("unknown error")
     }
   }
 
-  throw new Error("多次尝试后仍然失败，请稍后重试")
+  throw new Error("failed after multiple attempts")
 } 
