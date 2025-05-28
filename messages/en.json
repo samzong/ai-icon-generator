@@ -1,0 +1,83 @@
+{
+  "Header": {
+    "title": "AI Icon Generator",
+    "description": "Generate professional icons using AI DALL-E 3",
+    "githubAlt": "GitHub"
+  },
+  "Footer": {
+    "text": "Powered by Next.js and Vercel"
+  },
+  "HomePage": {
+    "title": "AI Icon Generator",
+    "description": "Generate professional icon designs using AI, supporting multiple styles and formats."
+  },
+  "IconGenerator": {
+    "errorHttpPrefix": "HTTP",
+    "errorRequestFailed": "Request failed",
+    "errorDefault": "Error generating icon, please try again later.",
+    "errorRateLimitedTitle": "Request Limited",
+    "errorGenerationFailedTitle": "Generation Failed",
+    "errorCloseAriaLabel": "Close error message",
+    "errorRefreshStatus": "Refresh limit status",
+    "historyTitle": "History",
+    "rateLimitHourlyMessage": "You have reached the hourly request limit. Please try again in {timeMessage}.",
+    "rateLimitMinutelyMessage": "You have reached the minutely request limit. Please try again in {timeMessage}.",
+    "timeMinutes": "{count, plural, =0 {} =1 {# minute} other {# minutes}}",
+    "timeSeconds": "{count, plural, =0 {} =1 {# second} other {# seconds}}",
+    "timeMoment": "a moment"
+  },
+  "PromptInput": {
+    "label": "Describe your icon",
+    "suggestionButton": "Get Suggestion",
+    "placeholder": "Describe the icon you want, e.g., a minimalist blue cloud icon...",
+    "generateButton": "Generate Icon"
+  },
+  "PromptSuggestions": {
+    "category": {
+      "科技": "Tech",
+      "自然": "Nature",
+      "商务": "Business",
+      "社交": "Social"
+    }
+  },
+  "StyleSelector": {
+    "style": {
+      "flat": "Flat",
+      "line": "Line",
+      "solid": "Solid",
+      "gradient": "Gradient",
+      "windows": "Windows",
+      "fluent": "Fluent"
+    }
+  },
+  "ExportOptions": {
+    "title": "Export Options",
+    "infoBox": "Images generated on different platforms may have varying retention times. Please download and save them locally as soon as possible. Expired image links will not be accessible.",
+    "shapeLabel": "Shape",
+    "backgroundLabel": "Background",
+    "downloadButtonText": "Download {format}",
+    "toast": {
+      "noImageToDownload": "No images to download",
+      "downloadSuccess": "{format} downloaded successfully",
+      "manualSave": "Image opened in a new tab. Please save it manually.",
+      "downloadFailedConsole": "Failed to download {format} format:",
+      "error": {
+        "noImage": "No image to download. Please generate an image first.",
+        "invalidUrl": "Invalid image URL format. Please regenerate the image.",
+        "timeout": "Request timed out. Please try again.",
+        "generic": "Download failed. Please try again."
+      }
+    },
+    "shape": {
+      "square": "Square",
+      "rounded": "Rounded",
+      "circle": "Circle"
+    },
+    "background": {
+      "transparent": "Transparent",
+      "white": "White",
+      "black": "Black",
+      "auto": "Auto"
+    }
+  }
+}

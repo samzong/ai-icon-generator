@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { imageConfig } from "@/config/site"
+import { useTranslations } from 'next-intl';
 
 interface StyleSelectorProps {
   value: typeof imageConfig.styles[number]
@@ -10,6 +11,8 @@ interface StyleSelectorProps {
 }
 
 export function StyleSelector({ value, onChange }: StyleSelectorProps) {
+  const t = useTranslations('StyleSelector.style');
+
   return (
     <div className="flex flex-wrap gap-2">
       {imageConfig.styles.map((style) => (
@@ -17,9 +20,9 @@ export function StyleSelector({ value, onChange }: StyleSelectorProps) {
           key={style}
           variant={value === style ? "default" : "outline"}
           onClick={() => onChange(style)}
-          className="capitalize"
+          className="capitalize" // Keep capitalize for consistent casing if translations vary
         >
-          {style}
+          {t(style)}
         </Button>
       ))}
     </div>

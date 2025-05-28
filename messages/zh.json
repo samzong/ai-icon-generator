@@ -1,0 +1,83 @@
+{
+  "Header": {
+    "title": "AI 图标生成器",
+    "description": "使用 AI DALL-E 3 生成专业图标",
+    "githubAlt": "GitHub"
+  },
+  "Footer": {
+    "text": "由 Next.js 和 Vercel 驱动"
+  },
+  "HomePage": {
+    "title": "AI 图标生成器",
+    "description": "使用 AI 生成专业的图标设计，支持多种风格和格式"
+  },
+  "IconGenerator": {
+    "errorHttpPrefix": "HTTP",
+    "errorRequestFailed": "请求失败",
+    "errorDefault": "生成图标时出错，请稍后重试",
+    "errorRateLimitedTitle": "请求受限",
+    "errorGenerationFailedTitle": "生成失败",
+    "errorCloseAriaLabel": "关闭错误提示",
+    "errorRefreshStatus": "刷新限制状态",
+    "historyTitle": "历史记录",
+    "rateLimitHourlyMessage": "已达到每小时请求限制。请在 {timeMessage} 后再试。",
+    "rateLimitMinutelyMessage": "已达到每分钟请求限制。请在 {timeMessage} 后再试。",
+    "timeMinutes": "{count, plural, =0 {} other {# 分钟}}",
+    "timeSeconds": "{count, plural, =0 {} other {# 秒}}",
+    "timeMoment": "片刻"
+  },
+  "PromptInput": {
+    "label": "描述你的图标",
+    "suggestionButton": "获取建议",
+    "placeholder": "描述你想要的图标，例如：一个简约的蓝色云朵图标...",
+    "generateButton": "生成图标"
+  },
+  "PromptSuggestions": {
+    "category": {
+      "科技": "科技",
+      "自然": "自然",
+      "商务": "商务",
+      "社交": "社交"
+    }
+  },
+  "StyleSelector": {
+    "style": {
+      "flat": "扁平",
+      "line": "线条",
+      "solid": "纯色",
+      "gradient": "渐变",
+      "windows": "Windows",
+      "fluent": "Fluent"
+    }
+  },
+  "ExportOptions": {
+    "title": "导出选项",
+    "infoBox": "不同平台生成的图片保留时间不一致，请尽快下载保存到本地。过期的图片链接将无法访问。",
+    "shapeLabel": "形状",
+    "backgroundLabel": "背景",
+    "downloadButtonText": "下载 {format}",
+    "toast": {
+      "noImageToDownload": "没有可下载的图片",
+      "downloadSuccess": "{format} 格式下载成功",
+      "manualSave": "已在新标签页打开图片，请手动保存",
+      "downloadFailedConsole": "下载 {format} 格式失败:",
+      "error": {
+        "noImage": "没有可下载的图片，请先生成图片",
+        "invalidUrl": "图片链接格式无效，请重新生成图片",
+        "timeout": "请求超时，请重试",
+        "generic": "下载失败，请重试"
+      }
+    },
+    "shape": {
+      "square": "正方形",
+      "rounded": "圆角",
+      "circle": "圆形"
+    },
+    "background": {
+      "transparent": "透明",
+      "white": "白色",
+      "black": "黑色",
+      "auto": "自动"
+    }
+  }
+}

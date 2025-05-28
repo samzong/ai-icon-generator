@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import createIntlMiddleware from 'next-intl/middleware';
 
 // 内存存储请求记录
 interface RequestRecord {
@@ -70,19 +71,40 @@ function getClientIP(request: NextRequest): string {
   return "unknown";
 }
 
+const locales = ['en', 'zh'];
+const defaultLocale = 'en';
+
+const intlMiddleware = createIntlMiddleware({
+  locales,
+  defaultLocale,
+  localePrefix: 'as-needed' // 'as-needed' will not add prefix for defaultLocale
+});
+
 export function middleware(request: NextRequest) {
-  // 仅对 API 生成路由应用限制
+  // First, handle internationalization
+  const intlResponse = intlMiddleware(request);
+
+  // If the request is not for the API generation endpoint, return the intl response
   if (!request.nextUrl.pathname.startsWith("/api/generate")) {
-    return NextResponse.next();
+    // Check if the path is for a locale-prefixed asset or something next-intl handles
+    // For example, /zh/some-page or /en/some-page (even if 'en' is default, 'as-needed' might create it)
+    // Or if it's a root request that intlMiddleware might have redirected (e.g. / to /en)
+    // We also want to ensure that requests to / (which intlMiddleware redirects to /en) are handled by intl.
+    // A simple check is if intlResponse has a different URL than the original request, or if it's not a simple "NextResponse.next()".
+    // However, a more robust way for this specific setup is to let intlMiddleware handle all non-/api/generate routes.
+    return intlResponse;
   }
 
-  // 获取客户端 IP
+  // For /api/generate, apply rate limiting AFTER intl middleware (though intl might not do much for API routes)
+  // It's important intlMiddleware runs, but its response might be a simple pass-through for API routes.
+
+  // Get client IP
   const ip = getClientIP(request);
 
   const now = Date.now();
   const isHeadRequest = request.method === "HEAD";
 
-  // 检查小时限制
+  // Check hourly limit
   const hourAgo = now - 1000 * 60 * 60;
   let hourlyRecord = store.hourlyRequests.get(ip);
 
@@ -216,7 +238,14 @@ export function middleware(request: NextRequest) {
   return response;
 }
 
-// 配置中间件匹配的路径
+// Configure middleware to match relevant paths
 export const config = {
-  matcher: ["/api/generate"],
+  matcher: [
+    // Match all pathnames except for
+    // - … if they start with `/api` (except /api/generate for rate limiting)
+    // - … static files and other Next.js internals
+    '/((?!api/|_next/static|_next/image|favicon.ico).*)',
+    // Match /api/generate for rate limiting
+    '/api/generate/:path*'
+  ]
 };
