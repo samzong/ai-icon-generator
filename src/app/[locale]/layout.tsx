@@ -11,22 +11,6 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: "AI Icon Generator",
   description: "Generate professional icon designs using AI",
-  icons: {
-    icon: [
-      {
-        url: "/logo64.png",
-        sizes: "64x64",
-        type: "image/png",
-      },
-      {
-        url: "/logo.png",
-        sizes: "512x512",
-        type: "image/png",
-      }
-    ],
-    shortcut: "/logo64.png",
-    apple: "/logo.png",
-  },
   manifest: "/manifest.json",
   openGraph: {
     title: "AI Icon Generator",
