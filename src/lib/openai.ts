@@ -1,6 +1,13 @@
 import OpenAI from "openai"
 import { APIError } from "openai/error"
 import { getApiConfig, getSelectedProviderConfig, type ApiProviderConfig } from "./storage"
+import {
+  type GenerateIconResult,
+  type GenerateIconOptions,
+  createEnhancedPrompt,
+  prepareServerRequest,
+  parseApiResponse
+} from "./icon-generation-core"
 
 if (!process.env.OPENAI_API_KEY) {
   throw new Error("Missing OPENAI_API_KEY environment variable")
@@ -47,19 +54,10 @@ export function getOpenAIClient() {
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-export interface GenerateIconResult {
-  url?: string
-  base64?: string
-  format: 'url' | 'base64'
-}
-
 export async function generateIcon(
   prompt: string, 
   style: string,
-  options: {
-    responseFormat?: 'url' | 'b64_json'
-    size?: '256x256' | '512x512' | '1024x1024'
-  } = {}
+  options: GenerateIconOptions = {}
 ): Promise<GenerateIconResult> {
   const maxRetries = 3
   let attempt = 0
@@ -73,40 +71,15 @@ export async function generateIcon(
 
   while (attempt < maxRetries) {
     try {
-      const enhancedPrompt = `"Create a professional macOS app icon with a ${style} style (e.g., modern, minimalist, flat). The icon should represent a single, unique, and memorable subject based on the user's simple and concise description: '${prompt}', which represents the main theme or element of the icon. The icon must be centered, isolated on a fully transparent background, with NO frames, borders, or UI elements around it. Ensure the design is simple, with NO additional decorative elements, and suitable as a macOS app icon or GitHub project logo. The icon should be easily recognizable even at small sizes. Use a cohesive color palette with 2-3 appropriate colors (e.g., shades of blue, gray, or green to suggest technology and professionalism) and maintain visual balance. The final image must be exactly ${size} pixels in resolution, high-quality, and contain ONLY the icon itself with NOTHING else, ensuring it is ready for immediate use in macOS and GitHub contexts."`
+      const enhancedPrompt = createEnhancedPrompt(prompt, style, size)
 
       const client = getOpenAIClient()
       
-      const requestParams = {
-        model: providerConfig.model || process.env.MODEL_NAME || 'gpt-image-1',
-        prompt: enhancedPrompt,
-        size: size,
-        ...(responseFormat && (providerConfig.baseUrl?.includes('openai.com') || providerConfig.baseUrl?.includes('dalle.feiyuyu.net')) 
-          ? { response_format: responseFormat } 
-          : {})
-      }
+      const requestParams = prepareServerRequest(providerConfig, enhancedPrompt, size, responseFormat)
 
       const response = await client!.images.generate(requestParams)
 
-      if (!response.data?.[0]) {
-        throw new Error("invalid api response")
-      }
-
-      const imageData = response.data[0]
-
-      if (imageData.url) {
-        return {
-          url: imageData.url,
-          format: 'url'
-        }
-      } else if (imageData.b64_json) {
-        return {
-          base64: imageData.b64_json,
-          format: 'base64'
-        }
-      } else {
-        throw new Error("no image data found in api response")
-      }
+      return parseApiResponse(response, getApiConfig().selectedProvider)
 
     } catch (error) {
       attempt++
@@ -158,4 +131,7 @@ export async function generateIcon(
   }
 
   throw new Error("failed after multiple attempts")
-} 
+}
+
+// Re-export types for convenience
+export { type GenerateIconResult } 

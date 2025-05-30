@@ -128,14 +128,14 @@
       "title": "🔄 API Call Flow Explanation",
       "default": {
         "flow": "• Browser → Local API(/api/generate) → System Default Service",
-        "description": "• Uses server-side configured API keys"
+        "description": "• Uses server-side configured API keys for security"
       },
       "custom": {
-        "flow": "• Browser → Local API(/api/generate) → {provider}",
+        "flow": "• Browser → Direct API Call → {provider}",
         "descriptions": [
-          "• Your API key is called on the server side to ensure security",
-          "• Browser network panel only shows requests to local API",
-          "• Actual third-party API calls are completed on the server side"
+          "• Your API key stays in your browser and is never sent to our servers",
+          "• Direct connection to the AI service provider for maximum privacy",
+          "• May encounter CORS restrictions with some providers"
         ]
       }
     },

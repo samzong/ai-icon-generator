@@ -44,4 +44,5 @@ export const eventManager = new EventManager();
 // 定义事件名称常量
 export const EVENTS = {
   RATE_LIMIT_UPDATE: 'rate-limit-update',
+  HISTORY_UPDATE: 'history-update',
 }; 

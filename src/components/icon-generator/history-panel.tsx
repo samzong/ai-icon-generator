@@ -4,6 +4,7 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { OptimizedImage } from "@/components/ui/optimized-image"
 import { iconStorage, type HistoryItem } from "@/lib/storage"
+import { eventManager, EVENTS } from "@/lib/events"
 import { StarIcon, StarFilledIcon, TrashIcon } from "@radix-ui/react-icons"
 import { formatDistanceToNow } from "date-fns"
 import { zhCN, enUS } from "date-fns/locale"
@@ -19,25 +20,42 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
   const locale = useLocale()
   const [history, setHistory] = React.useState<HistoryItem[]>([])
   const [filter, setFilter] = React.useState<"all" | "favorites">("all")
+  const [, forceUpdate] = React.useReducer(x => x + 1, 0) // Force re-render mechanism
 
   React.useEffect(() => {
-    setHistory(iconStorage.getHistory())
-  }, [])
+    // Function to refresh history (defined inside useEffect to avoid stale closure)
+    const refreshHistory = () => {
+      const newHistory = iconStorage.getHistory()
+      setHistory(newHistory)
+      forceUpdate() // Force component re-render
+    }
+    
+    // Initial load
+    refreshHistory()
+
+    // Subscribe to history update events
+    const unsubscribe = eventManager.subscribe(EVENTS.HISTORY_UPDATE, () => {
+      refreshHistory()
+    })
+
+    return unsubscribe
+  }, []) // Remove refreshHistory from dependencies
 
   const filteredHistory = React.useMemo(() => {
-    return filter === "favorites"
+    const filtered = filter === "favorites"
       ? history.filter((item) => item.isFavorite)
       : history
+    return filtered
   }, [history, filter])
 
   const handleToggleFavorite = (id: string) => {
     iconStorage.toggleFavorite(id)
-    setHistory(iconStorage.getHistory())
+    eventManager.emit(EVENTS.HISTORY_UPDATE)
   }
 
   const handleRemove = (id: string) => {
     iconStorage.removeFromHistory(id)
-    setHistory(iconStorage.getHistory())
+    eventManager.emit(EVENTS.HISTORY_UPDATE)
   }
 
   if (history.length === 0) {
@@ -72,7 +90,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
           size="sm"
           onClick={() => {
             iconStorage.clearHistory()
-            setHistory([])
+            eventManager.emit(EVENTS.HISTORY_UPDATE)
           }}
         >
           {t('clearHistory')}

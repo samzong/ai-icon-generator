@@ -3,6 +3,7 @@
 import * as React from "react"
 import { PromptInput } from "./prompt-input"
 import { StyleSelector } from "./style-selector"
+import { ConfigIndicator } from "./config-indicator"
 import { PreviewPanel } from "./preview-panel"
 import { ExportOptions } from "./export-options"
 import { HistoryPanel } from "./history-panel"
@@ -11,6 +12,8 @@ import { iconCache } from "@/lib/cache"
 import { iconStorage, type HistoryItem } from "@/lib/storage"
 import { eventManager, EVENTS } from "@/lib/events"
 import { useTranslations } from 'next-intl'
+import { generateIconClient } from "@/lib/openai-client"
+import { shouldUseClientSideCall } from "@/lib/icon-generation-core"
 
 export function IconGenerator() {
   const t = useTranslations('iconGenerator')
@@ -39,67 +42,104 @@ export function IconGenerator() {
           style,
           imageUrl: cachedUrl,
         })
+        
+        // Trigger history update event
+        eventManager.emit(EVENTS.HISTORY_UPDATE)
         return
       }
 
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt, style }),
-      })
-
-      // Save status code for error display
-      const statusCode = response.status
-
-      // Handle rate limit errors
-      if (statusCode === 429) {
-        setIsRateLimited(true)
-        const errorData = await response.json()
-        
-        // Use server-returned friendly message
-        if (errorData.message) {
-          throw new Error(`[HTTP ${statusCode}] ${errorData.message}`)
-        }
-        
-        // If server doesn't return friendly message, construct our own
-        const resetTime = new Date(errorData.resetAt)
-        const now = new Date()
-        
-        // Calculate remaining time
-        const diffMs = resetTime.getTime() - now.getTime()
-        const diffMins = Math.round(diffMs / 60000)
-        const diffSecs = Math.round((diffMs % 60000) / 1000)
-        
-        let timeMessage = ""
-        if (diffMins > 0) {
-          timeMessage = `${diffMins} ${t('errors.minutes')}`
-        }
-        if (diffSecs > 0) {
-          timeMessage += timeMessage ? ` ${diffSecs} ${t('errors.seconds')}` : `${diffSecs} ${t('errors.seconds')}`
-        }
-        
-        const limitType = errorData.error.includes('小时') || errorData.error.includes('hour') ? t('errors.rateLimitHourly') : t('errors.rateLimitMinutely')
-        throw new Error(
-          `[HTTP ${statusCode}] ${t('errors.rateLimitMessage', { type: limitType, time: timeMessage || t('errors.rateLimitMessageFallback') })}`
-        )
-      }
-
-      if (!response.ok) {
-        throw new Error(`[HTTP ${statusCode}] ${t('errors.requestFailed')}`)
-      }
-
-      const data = await response.json()
+      let result
       
-      iconCache.set(cacheKey, data.url)
-      setImageUrl(data.url)
+      // Choose calling method based on configuration
+      if (shouldUseClientSideCall()) {
+        // Client-side direct API call for custom configurations
+        result = await generateIconClient(prompt, style)
+        
+        // Handle different response formats
+        let imageUrl: string
+        if (result.format === 'url' && result.url) {
+          imageUrl = result.url
+        } else if (result.format === 'base64' && result.base64) {
+          imageUrl = `data:image/png;base64,${result.base64}`
+        } else {
+          throw new Error("Invalid response format from generateIconClient")
+        }
+        
+        iconCache.set(cacheKey, imageUrl)
+        setImageUrl(imageUrl)
+        
+        iconStorage.addToHistory({
+          prompt,
+          style,
+          imageUrl: imageUrl,
+        })
+        
+        // Trigger history update event
+        eventManager.emit(EVENTS.HISTORY_UPDATE)
+      } else {
+        // Server-side proxy call for default configuration
+        const response = await fetch("/api/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt, style }),
+        })
 
-      iconStorage.addToHistory({
-        prompt,
-        style,
-        imageUrl: data.url,
-      })
+        // Save status code for error display
+        const statusCode = response.status
+
+        // Handle rate limit errors
+        if (statusCode === 429) {
+          setIsRateLimited(true)
+          const errorData = await response.json()
+          
+          // Use server-returned friendly message
+          if (errorData.message) {
+            throw new Error(`[HTTP ${statusCode}] ${errorData.message}`)
+          }
+          
+          // If server doesn't return friendly message, construct our own
+          const resetTime = new Date(errorData.resetAt)
+          const now = new Date()
+          
+          // Calculate remaining time
+          const diffMs = resetTime.getTime() - now.getTime()
+          const diffMins = Math.round(diffMs / 60000)
+          const diffSecs = Math.round((diffMs % 60000) / 1000)
+          
+          let timeMessage = ""
+          if (diffMins > 0) {
+            timeMessage = `${diffMins} ${t('errors.minutes')}`
+          }
+          if (diffSecs > 0) {
+            timeMessage += timeMessage ? ` ${diffSecs} ${t('errors.seconds')}` : `${diffSecs} ${t('errors.seconds')}`
+          }
+          
+          const limitType = errorData.error.includes('小时') || errorData.error.includes('hour') ? t('errors.rateLimitHourly') : t('errors.rateLimitMinutely')
+          throw new Error(
+            `[HTTP ${statusCode}] ${t('errors.rateLimitMessage', { type: limitType, time: timeMessage || t('errors.rateLimitMessageFallback') })}`
+          )
+        }
+
+        if (!response.ok) {
+          throw new Error(`[HTTP ${statusCode}] ${t('errors.requestFailed')}`)
+        }
+
+        const data = await response.json()
+        
+        iconCache.set(cacheKey, data.url)
+        setImageUrl(data.url)
+
+        iconStorage.addToHistory({
+          prompt,
+          style,
+          imageUrl: data.url,
+        })
+        
+        // Trigger history update event
+        eventManager.emit(EVENTS.HISTORY_UPDATE)
+      }
       
       // Trigger rate limit update event
       eventManager.emit(EVENTS.RATE_LIMIT_UPDATE)
@@ -138,6 +178,7 @@ export function IconGenerator() {
           isDisabled={isRateLimited}
         />
         <StyleSelector value={style} onChange={setStyle} />
+        <ConfigIndicator />
       </div>
       {error && (
         <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-4 text-sm border border-red-200 dark:border-red-800 flex items-start space-x-3">
