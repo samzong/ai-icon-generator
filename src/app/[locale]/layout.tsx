@@ -8,6 +8,7 @@ import { Analytics } from "@vercel/analytics/react";
 import "../globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: "AI Icon Generator",
   description: "Generate professional icon designs using AI",
   icons: {
