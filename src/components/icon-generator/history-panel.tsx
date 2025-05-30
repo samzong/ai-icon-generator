@@ -6,13 +6,17 @@ import { OptimizedImage } from "@/components/ui/optimized-image"
 import { iconStorage, type HistoryItem } from "@/lib/storage"
 import { StarIcon, StarFilledIcon, TrashIcon } from "@radix-ui/react-icons"
 import { formatDistanceToNow } from "date-fns"
-import { zhCN } from "date-fns/locale"
+import { zhCN, enUS } from "date-fns/locale"
+import { useTranslations } from 'next-intl'
+import { useLocale } from 'next-intl'
 
 interface HistoryPanelProps {
   onSelect: (item: HistoryItem) => void
 }
 
 export function HistoryPanel({ onSelect }: HistoryPanelProps) {
+  const t = useTranslations('historyPanel')
+  const locale = useLocale()
   const [history, setHistory] = React.useState<HistoryItem[]>([])
   const [filter, setFilter] = React.useState<"all" | "favorites">("all")
 
@@ -39,7 +43,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
   if (history.length === 0) {
     return (
       <div className="text-center text-sm text-muted-foreground">
-        暂无历史记录
+        {t('noHistory')}
       </div>
     )
   }
@@ -53,14 +57,14 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
             size="sm"
             onClick={() => setFilter("all")}
           >
-            全部
+            {t('all')}
           </Button>
           <Button
             variant={filter === "favorites" ? "default" : "outline"}
             size="sm"
             onClick={() => setFilter("favorites")}
           >
-            收藏
+            {t('favorites')}
           </Button>
         </div>
         <Button
@@ -71,7 +75,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
             setHistory([])
           }}
         >
-          清空历史
+          {t('clearHistory')}
         </Button>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -94,7 +98,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
               <span className="text-xs text-muted-foreground">
                 {formatDistanceToNow(item.timestamp, {
                   addSuffix: true,
-                  locale: zhCN,
+                  locale: locale === 'zh-CN' ? zhCN : enUS,
                 })}
               </span>
               <div className="flex items-center gap-1">

@@ -10,8 +10,11 @@ import { imageConfig } from "@/config/site"
 import { iconCache } from "@/lib/cache"
 import { iconStorage, type HistoryItem } from "@/lib/storage"
 import { eventManager, EVENTS } from "@/lib/events"
+import { useTranslations } from 'next-intl'
 
 export function IconGenerator() {
+  const t = useTranslations('iconGenerator')
+  const tHistory = useTranslations('historyPanel')
   const [prompt, setPrompt] = React.useState("")
   const [style, setStyle] = React.useState<typeof imageConfig.styles[number]>("flat")
   const [isGenerating, setIsGenerating] = React.useState(false)
@@ -47,43 +50,44 @@ export function IconGenerator() {
         body: JSON.stringify({ prompt, style }),
       })
 
-      // 保存状态码，用于错误显示
+      // Save status code for error display
       const statusCode = response.status
 
-      // 处理速率限制错误
+      // Handle rate limit errors
       if (statusCode === 429) {
         setIsRateLimited(true)
         const errorData = await response.json()
         
-        // 使用服务器返回的友好消息
+        // Use server-returned friendly message
         if (errorData.message) {
           throw new Error(`[HTTP ${statusCode}] ${errorData.message}`)
         }
         
-        // 如果服务器没有返回友好消息，则自己构造
+        // If server doesn't return friendly message, construct our own
         const resetTime = new Date(errorData.resetAt)
         const now = new Date()
         
-        // 计算剩余时间
+        // Calculate remaining time
         const diffMs = resetTime.getTime() - now.getTime()
         const diffMins = Math.round(diffMs / 60000)
         const diffSecs = Math.round((diffMs % 60000) / 1000)
         
         let timeMessage = ""
         if (diffMins > 0) {
-          timeMessage = `${diffMins} 分钟`
+          timeMessage = `${diffMins} ${t('errors.minutes')}`
         }
         if (diffSecs > 0) {
-          timeMessage += timeMessage ? ` ${diffSecs} 秒` : `${diffSecs} 秒`
+          timeMessage += timeMessage ? ` ${diffSecs} ${t('errors.seconds')}` : `${diffSecs} ${t('errors.seconds')}`
         }
         
+        const limitType = errorData.error.includes('小时') || errorData.error.includes('hour') ? t('errors.rateLimitHourly') : t('errors.rateLimitMinutely')
         throw new Error(
-          `[HTTP ${statusCode}] 已达到${errorData.error.includes('小时') ? '每小时' : '每分钟'}请求限制。请在 ${timeMessage || '片刻'} 后再试。`
+          `[HTTP ${statusCode}] ${t('errors.rateLimitMessage', { type: limitType, time: timeMessage || t('errors.rateLimitMessageFallback') })}`
         )
       }
 
       if (!response.ok) {
-        throw new Error(`[HTTP ${statusCode}] 请求失败`)
+        throw new Error(`[HTTP ${statusCode}] ${t('errors.requestFailed')}`)
       }
 
       const data = await response.json()
@@ -97,12 +101,12 @@ export function IconGenerator() {
         imageUrl: data.url,
       })
       
-      // 触发速率限制更新事件
+      // Trigger rate limit update event
       eventManager.emit(EVENTS.RATE_LIMIT_UPDATE)
     } catch (error) {
       console.error("Error generating icon:", error)
-      setError(error instanceof Error ? error.message : "生成图标时出错，请稍后重试")
-      // 检查错误消息是否包含速率限制信息
+      setError(error instanceof Error ? error.message : t('errors.generateFailed'))
+      // Check if error message contains rate limit information
       if (error instanceof Error && error.message.includes('[HTTP 429]')) {
         setIsRateLimited(true)
       }
@@ -117,7 +121,7 @@ export function IconGenerator() {
     setImageUrl(item.imageUrl)
   }
 
-  // 清除错误信息
+  // Clear error message
   const clearError = () => {
     setError(null)
     setIsRateLimited(false)
@@ -153,7 +157,7 @@ export function IconGenerator() {
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <p className="font-medium text-red-800 dark:text-red-200">
-                {error.includes('[HTTP 429]') ? '请求受限' : '生成失败'}
+                {error.includes('[HTTP 429]') ? t('errors.requestLimited') : t('errors.requestFailed')}
               </p>
               <div className="flex items-center space-x-2">
                 {error.match(/\[HTTP (\d+)\]/) && (
@@ -164,7 +168,7 @@ export function IconGenerator() {
                 <button
                   onClick={clearError}
                   className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                  aria-label="关闭错误提示"
+                  aria-label={t('errors.closeError')}
                 >
                   <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -175,12 +179,12 @@ export function IconGenerator() {
             <p className="mt-1 text-red-700 dark:text-red-300">
               {error.replace(/\[HTTP \d+\] /, '')}
             </p>
-            {error.includes('请求限制') && (
+            {(error.includes('请求限制') || error.includes('rate limit')) && (
               <button 
                 onClick={() => eventManager.emit(EVENTS.RATE_LIMIT_UPDATE)}
                 className="mt-2 text-xs bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200 px-2 py-1 rounded hover:bg-red-200 dark:hover:bg-red-700 transition-colors"
               >
-                刷新限制状态
+                {t('errors.refreshLimitStatus')}
               </button>
             )}
           </div>
@@ -189,7 +193,7 @@ export function IconGenerator() {
       <PreviewPanel imageUrl={imageUrl} isLoading={isGenerating} />
       {imageUrl && <ExportOptions imageUrl={imageUrl} />}
       <div className="space-y-md">
-        <h2 className="text-xl font-medium text-primary-800 dark:text-primary-200">历史记录</h2>
+        <h2 className="text-xl font-medium text-primary-800 dark:text-primary-200">{tHistory('historyTitle')}</h2>
         <HistoryPanel onSelect={handleHistorySelect} />
       </div>
     </div>

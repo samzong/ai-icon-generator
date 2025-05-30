@@ -4,7 +4,8 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { ReloadIcon, LightningBoltIcon } from "@radix-ui/react-icons"
-import { promptSuggestions, getRandomSuggestion } from "@/lib/suggestions"
+import { usePromptSuggestions, useRandomSuggestion } from "@/lib/suggestions"
+import { useTranslations } from 'next-intl'
 
 interface PromptInputProps {
   value: string
@@ -21,6 +22,10 @@ export function PromptInput({
   isGenerating,
   isDisabled = false,
 }: PromptInputProps) {
+  const t = useTranslations('promptInput')
+  const promptSuggestions = usePromptSuggestions()
+  const getRandomSuggestion = useRandomSuggestion()
+
   const handleSuggestion = () => {
     onChange(getRandomSuggestion())
   }
@@ -28,7 +33,7 @@ export function PromptInput({
   return (
     <div className="grid gap-2">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium">描述你的图标</label>
+        <label className="text-sm font-medium">{t('label')}</label>
         <Button
           variant="ghost"
           size="sm"
@@ -36,18 +41,18 @@ export function PromptInput({
           onClick={handleSuggestion}
         >
           <LightningBoltIcon className="mr-2 h-4 w-4" />
-          获取建议
+          {t('getSuggestion')}
         </Button>
       </div>
       <Textarea
-        placeholder="描述你想要的图标，例如：一个简约的蓝色云朵图标..."
+        placeholder={t('placeholder')}
         value={value}
         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)}
         className="min-h-[100px]"
       />
       <div className="flex flex-wrap gap-2">
         {promptSuggestions.map((category) => (
-          <div key={category.category} className="flex flex-col gap-1">
+          <div key={category.categoryKey} className="flex flex-col gap-1">
             <span className="text-xs font-medium text-muted-foreground">
               {category.category}
             </span>
@@ -75,7 +80,7 @@ export function PromptInput({
           {isGenerating && (
             <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
           )}
-          生成图标
+          {t('generateIcon')}
         </Button>
       </div>
     </div>

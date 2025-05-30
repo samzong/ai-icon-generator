@@ -29,13 +29,18 @@ import {
   type ApiProvider,
   type ApiProviderConfig,
 } from "@/lib/storage";
-import { PROVIDER_INFO, validateApiConfig, type ValidationError } from "@/lib/api-providers";
+import { getProviderInfo, validateApiConfig, type ValidationError } from "@/lib/api-providers";
+import { useTranslations } from 'next-intl';
 
 export function ApiConfigDialog() {
+  const t = useTranslations('apiConfig');
   const [isOpen, setIsOpen] = useState(false);
   const [config, setConfig] = useState<ApiConfig | null>(null);
   const [savedConfig, setSavedConfig] = useState<ApiConfig | null>(null);
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+
+  // Get translated provider info
+  const PROVIDER_INFO_TRANSLATED = getProviderInfo((key: string) => t(key));
 
   useEffect(() => {
     const currentConfig = getApiConfig();
@@ -46,7 +51,7 @@ export function ApiConfigDialog() {
   const handleSave = () => {
     if (!config) return;
 
-    const errors = validateApiConfig(config);
+    const errors = validateApiConfig(config, (key: string) => t(key));
     setValidationErrors(errors);
 
     if (errors.length === 0) {
@@ -108,34 +113,33 @@ export function ApiConfigDialog() {
 
   const selectedProvider = config.selectedProvider;
   const selectedProviderConfig = config.providers[selectedProvider];
-  const selectedProviderInfo = PROVIDER_INFO[selectedProvider];
+  const selectedProviderInfo = PROVIDER_INFO_TRANSLATED[selectedProvider];
   const errorsByField = validationErrors.reduce((acc, error) => {
     acc[error.field] = error.message;
     return acc;
   }, {} as Record<string, string>);
 
   // Get current provider display name for button - use saved config, not editing config
-  const currentProviderName = savedConfig ? PROVIDER_INFO[savedConfig.selectedProvider]?.name || "API 配置" : "API 配置";
+  const currentProviderName = savedConfig ? PROVIDER_INFO_TRANSLATED[savedConfig.selectedProvider]?.name || 'API Key' : 'API Key';
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm" className="flex items-center gap-2">
           <Settings className="h-4 w-4" />
-          <span className="hidden sm:inline">API 配置</span>
           <span className="text-xs text-muted-foreground">({currentProviderName})</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>API 配置</DialogTitle>
-          <DialogDescription>配置你的 AI 图标生成服务提供商</DialogDescription>
+          <DialogTitle>{t('title')}</DialogTitle>
+          <DialogDescription>{t('description')}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Provider Selection */}
           <div className="space-y-2">
-            <Label>服务提供商</Label>
+            <Label>{t('provider')}</Label>
             <Select
               value={config.selectedProvider}
               onValueChange={handleProviderChange}
@@ -144,7 +148,7 @@ export function ApiConfigDialog() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.entries(PROVIDER_INFO).map(([key, info]) => (
+                {Object.entries(PROVIDER_INFO_TRANSLATED).map(([key, info]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center justify-between w-full">
                       <div>
@@ -155,12 +159,12 @@ export function ApiConfigDialog() {
                       </div>
                       {key === "default" ? (
                         <Badge variant="default" className="text-xs ml-2">
-                          默认
+                          {t('badges.default')}
                         </Badge>
                       ) : (
                         config.providers[key as ApiProvider].apiKey && (
                           <Badge variant="secondary" className="text-xs ml-2">
-                            已配置
+                            {t('badges.configured')}
                           </Badge>
                         )
                       )}
@@ -182,7 +186,7 @@ export function ApiConfigDialog() {
                   rel="noopener noreferrer"
                   className="text-sm text-muted-foreground hover:text-primary flex items-center"
                 >
-                  获取 API Key
+                  {t('getApiKey')}
                   <ExternalLink className="h-3 w-3 ml-1" />
                 </a>
               )}
@@ -191,11 +195,11 @@ export function ApiConfigDialog() {
             {/* Default Service Info */}
             {selectedProvider === "default" && (
               <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                <div className="font-medium mb-2">默认服务说明</div>
+                <div className="font-medium mb-2">{t('defaultService.title')}</div>
                 <ul className="list-disc list-inside space-y-1">
-                  <li>使用系统预配置的 API 服务</li>
-                  <li>无需配置 API Key，开箱即用</li>
-                  <li>适合快速体验和测试使用</li>
+                  {(t.raw('defaultService.features') as string[]).map((feature: string, index: number) => (
+                    <li key={index}>{feature}</li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -206,7 +210,7 @@ export function ApiConfigDialog() {
                 {/* API Key */}
                 <div className="space-y-2">
                   <Label htmlFor="api-key">
-                    API Key <span className="text-red-500">*</span>
+                    {t('apiKey')} <span className="text-red-500">{t('required')}</span>
                   </Label>
                   <Input
                     id="api-key"
@@ -231,7 +235,7 @@ export function ApiConfigDialog() {
                 {selectedProviderInfo.baseUrlEditable && (
                   <div className="space-y-2">
                     <Label htmlFor="base-url">
-                      Base URL <span className="text-red-500">*</span>
+                      {t('baseUrl')} <span className="text-red-500">{t('required')}</span>
                     </Label>
                     <Input
                       id="base-url"
@@ -255,7 +259,7 @@ export function ApiConfigDialog() {
                 {/* Base URL - show for console-d-run but disabled */}
                 {selectedProvider === "console-d-run" && (
                   <div className="space-y-2">
-                    <Label htmlFor="base-url">Base URL</Label>
+                    <Label htmlFor="base-url">{t('baseUrl')}</Label>
                     <Input
                       id="base-url"
                       value={selectedProviderConfig.baseUrl || ""}
@@ -268,7 +272,7 @@ export function ApiConfigDialog() {
                 {/* Model - only show if editable */}
                 {selectedProviderInfo.modelEditable && (
                   <div className="space-y-2">
-                    <Label htmlFor="model">模型</Label>
+                    <Label htmlFor="model">{t('model')}</Label>
                     <Input
                       id="model"
                       value={selectedProviderConfig.model || ""}
@@ -290,7 +294,7 @@ export function ApiConfigDialog() {
           {/* Validation Error Summary */}
           {validationErrors.length > 0 && (
             <div className="text-xs text-red-500 bg-red-50 dark:bg-red-950 p-2 rounded">
-              <span className="font-medium">请完善以下必填信息：</span>
+              <span className="font-medium">{t('validation.title')}</span>
               <ul className="list-disc list-inside mt-1">
                 {validationErrors.map((error, index) => (
                   <li key={index}>{error.message}</li>
@@ -301,24 +305,24 @@ export function ApiConfigDialog() {
 
           {/* Security Notice */}
           <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-            <span className="font-medium">安全提示：</span>
-            API Key 仅存储在本地浏览器，不会发送到其他服务器
+            <span className="font-medium">{t('security.title')}</span>
+            {t('security.description')}
           </div>
 
           {/* API Call Flow Explanation */}
           <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950 p-3 rounded">
-            <div className="font-medium mb-2">🔄 API 调用流程说明</div>
+            <div className="font-medium mb-2">{t('apiFlow.title')}</div>
             {selectedProvider === "default" ? (
               <div className="space-y-1">
-                <div>• 浏览器 → 本地API(/api/generate) → 系统默认服务</div>
-                <div>• 使用服务器端配置的API密钥</div>
+                <div>{t('apiFlow.default.flow')}</div>
+                <div>{t('apiFlow.default.description')}</div>
               </div>
             ) : (
               <div className="space-y-1">
-                <div>• 浏览器 → 本地API(/api/generate) → {selectedProviderInfo.name}</div>
-                <div>• 你的API密钥在服务器端调用，保证安全性</div>
-                <div>• 浏览器网络面板只会显示对本地API的请求</div>
-                <div>• 实际的第三方API调用在服务器端完成</div>
+                <div>{t('apiFlow.custom.flow', { provider: selectedProviderInfo.name })}</div>
+                {(t.raw('apiFlow.custom.descriptions') as string[]).map((description: string, index: number) => (
+                  <div key={index}>{description}</div>
+                ))}
               </div>
             )}
           </div>
@@ -326,9 +330,9 @@ export function ApiConfigDialog() {
 
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel}>
-            取消
+            {t('cancel')}
           </Button>
-          <Button onClick={handleSave}>保存配置</Button>
+          <Button onClick={handleSave}>{t('save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

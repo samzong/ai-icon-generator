@@ -6,6 +6,7 @@ import { imageConfig } from "@/config/site"
 import { downloadImage } from "@/lib/download"
 import { ReloadIcon, InfoCircledIcon } from "@radix-ui/react-icons"
 import { toast } from "sonner"
+import { useTranslations } from 'next-intl'
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ interface ExportOptionsProps {
 }
 
 export function ExportOptions({ imageUrl }: ExportOptionsProps) {
+  const t = useTranslations('exportOptions')
   const [isDownloading, setIsDownloading] = React.useState<string | null>(null)
   const [shape, setShape] = React.useState<typeof imageConfig.shapes[number]>("square")
   const [background, setBackground] = React.useState<typeof imageConfig.backgrounds[number]>("transparent")
@@ -27,7 +29,7 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
     if (isDownloading) return
     
     if (!imageUrl) {
-      toast.error('No images to download')
+      toast.error(t('messages.noImages'))
       return
     }
 
@@ -40,26 +42,26 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
         background,
       })
       if (success) {
-        toast.success(`${format.toUpperCase()} 格式下载成功`)
+        toast.success(t('messages.downloadSuccess', { format: format.toUpperCase() }))
       } else {
-        toast.info('已在新标签页打开图片，请手动保存')
+        toast.info(t('messages.openedInNewTab'))
       }
     } catch (error) {
-      console.error(`下载 ${format} 格式失败:`, error)
+      console.error(`Failed to download ${format} format:`, error)
       
       // Simplified error handling
       if (error instanceof Error) {
-        if (error.message.includes('图片URL为空')) {
-          toast.error('没有可下载的图片，请先生成图片')
-        } else if (error.message.includes('无效的图片URL格式') || error.message.includes('不支持的URL类型')) {
-          toast.error('图片链接格式无效，请重新生成图片')
+        if (error.message.includes('图片URL为空') || error.message.includes('empty')) {
+          toast.error(t('messages.noImageGenerated'))
+        } else if (error.message.includes('无效的图片URL格式') || error.message.includes('不支持的URL类型') || error.message.includes('invalid') || error.message.includes('unsupported')) {
+          toast.error(t('messages.invalidImageUrl'))
         } else if (error.message.includes('timeout')) {
-          toast.error('请求超时，请重试')
+          toast.error(t('messages.requestTimeout'))
         } else {
-          toast.error('下载失败，请重试')
+          toast.error(t('messages.downloadFailed'))
         }
       } else {
-        toast.error('下载失败，请重试')
+        toast.error(t('messages.downloadFailed'))
       }
     } finally {
       setIsDownloading(null)
@@ -69,7 +71,7 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between">
-        <h3 className="font-medium">导出选项</h3>
+        <h3 className="font-medium">{t('title')}</h3>
       </div>
       
       <div className="rounded-md bg-blue-50 dark:bg-blue-900/30 p-3">
@@ -79,7 +81,7 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
           </div>
           <div className="ml-3 flex-1">
             <p className="text-sm text-blue-700 dark:text-blue-300">
-              不同平台生成的图片保留时间不一致，请尽快下载保存到本地。过期的图片链接将无法访问。
+              {t('notice')}
             </p>
           </div>
         </div>
@@ -87,30 +89,30 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
       
       <div className="flex flex-wrap gap-4">
         <div className="space-y-2">
-          <label className="text-sm text-muted-foreground">形状</label>
+          <label className="text-sm text-muted-foreground">{t('shape')}</label>
           <Select value={shape} onValueChange={(value: typeof imageConfig.shapes[number]) => setShape(value)}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="square">正方形</SelectItem>
-              <SelectItem value="rounded">圆角</SelectItem>
-              <SelectItem value="circle">圆形</SelectItem>
+              <SelectItem value="square">{t('shapes.square')}</SelectItem>
+              <SelectItem value="rounded">{t('shapes.rounded')}</SelectItem>
+              <SelectItem value="circle">{t('shapes.circle')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
         
         <div className="space-y-2">
-          <label className="text-sm text-muted-foreground">背景</label>
+          <label className="text-sm text-muted-foreground">{t('background')}</label>
           <Select value={background} onValueChange={(value: typeof imageConfig.backgrounds[number]) => setBackground(value)}>
             <SelectTrigger className="w-[120px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="transparent">透明</SelectItem>
-              <SelectItem value="white">白色</SelectItem>
-              <SelectItem value="black">黑色</SelectItem>
-              <SelectItem value="auto">自动</SelectItem>
+              <SelectItem value="transparent">{t('backgrounds.transparent')}</SelectItem>
+              <SelectItem value="white">{t('backgrounds.white')}</SelectItem>
+              <SelectItem value="black">{t('backgrounds.black')}</SelectItem>
+              <SelectItem value="auto">{t('backgrounds.auto')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -127,7 +129,7 @@ export function ExportOptions({ imageUrl }: ExportOptionsProps) {
             {isDownloading === format && (
               <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
             )}
-            下载 {format.toUpperCase()}
+            {t('downloadFormat', { format: format.toUpperCase() })}
           </Button>
         ))}
       </div>
