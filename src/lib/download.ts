@@ -4,14 +4,14 @@ export async function downloadImage(url: string, options: ExportOptions) {
   try {
     // Validate URL
     if (!url) {
-      throw new Error('图片URL为空')
+      throw new Error('Empty image URL')
     }
     
     // Check URL type and handle accordingly
     const urlType = getUrlType(url)
     
     if (urlType === 'invalid') {
-      throw new Error('无效的图片URL格式')
+      throw new Error('Invalid image URL format')
     }
     
     // Handle data URLs directly
@@ -26,7 +26,7 @@ export async function downloadImage(url: string, options: ExportOptions) {
     
     // Handle HTTP/HTTPS URLs through proxy
     if (urlType !== 'http') {
-      throw new Error(`不支持的URL类型: ${urlType}`)
+      throw new Error(`Unsupported URL type: ${urlType}`)
     }
 
     // Use proxy server with fallback to POST for long URLs
@@ -48,14 +48,17 @@ export async function downloadImage(url: string, options: ExportOptions) {
     const blob = await response.blob()
     
     if (blob.size === 0) {
-      throw new Error('获取到的图片数据为空')
+      throw new Error('Empty image data received')
     }
 
     return await processAndDownload(blob, options)
   } catch (error) {
     // Handle specific error types
     if (error instanceof Error) {
-      if (error.message.includes('图片URL为空') || 
+      if (error.message.includes('Empty image URL') || 
+          error.message.includes('Invalid image URL format') ||
+          error.message.includes('Unsupported URL type') ||
+          error.message.includes('图片URL为空') || 
           error.message.includes('无效的图片URL格式') ||
           error.message.includes('不支持的URL类型')) {
         throw error // Re-throw validation errors
@@ -95,7 +98,7 @@ async function handleDataUrl(dataUrl: string, options: ExportOptions): Promise<b
   const blob = await response.blob()
   
   if (blob.size === 0) {
-    throw new Error('Data URL转换失败')
+    throw new Error('Data URL conversion failed')
   }
   
   return await processAndDownload(blob, options)
@@ -107,7 +110,7 @@ async function handleBlobUrl(blobUrl: string, options: ExportOptions): Promise<b
   const blob = await response.blob()
   
   if (blob.size === 0) {
-    throw new Error('Blob URL转换失败')
+    throw new Error('Blob URL conversion failed')
   }
   
   return await processAndDownload(blob, options)

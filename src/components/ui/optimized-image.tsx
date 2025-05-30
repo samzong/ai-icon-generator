@@ -3,6 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { cn } from "@/lib/utils"
+import { useTranslations } from 'next-intl'
 
 interface OptimizedImageProps {
   src: string
@@ -28,6 +29,7 @@ export function OptimizedImage({
   noRetry = false,
   ...props
 }: OptimizedImageProps) {
+  const t = useTranslations('optimizedImage')
   const [isLoading, setIsLoading] = React.useState(true)
   const [error, setError] = React.useState<Error | null>(null)
   const [retryCount, setRetryCount] = React.useState(0)
@@ -73,7 +75,7 @@ export function OptimizedImage({
     return (
       <div className="relative flex h-full w-full items-center justify-center bg-muted/20 text-center">
         <div className="p-4">
-          <p className="text-sm font-medium text-muted-foreground">图片链接已失效</p>
+          <p className="text-sm font-medium text-muted-foreground">{t('linkExpired')}</p>
         </div>
       </div>
     )
@@ -107,7 +109,7 @@ export function OptimizedImage({
             <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
             {retryCount > 0 && !noRetry && (
               <span className="text-xs text-muted-foreground">
-                重试中... ({retryCount}/{maxRetries})
+                {t('retrying', { current: retryCount, max: maxRetries })}
               </span>
             )}
           </div>

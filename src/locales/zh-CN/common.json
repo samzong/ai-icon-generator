@@ -1,0 +1,227 @@
+{
+  "title": "AI 图标生成器",
+  "description": "使用AI生成图标。",
+  "buttons": {
+    "generate": "生成",
+    "download": "下载",
+    "clear": "清除",
+    "save": "保存"
+  },
+  "form": {
+    "placeholder": "在此输入您的提示...",
+    "style": "风格",
+    "color": "颜色",
+    "size": "尺寸"
+  },
+  "messages": {
+    "success": "图标生成成功！",
+    "error": "生成图标失败",
+    "loading": "正在生成您的图标..."
+  },
+  "page": {
+    "title": "AI 图标生成器",
+    "subtitle": "使用 AI 生成专业的图标设计，支持多种风格和格式"
+  },
+  "promptInput": {
+    "label": "描述你的图标",
+    "placeholder": "描述你想要的图标，例如：一个简约的蓝色云朵图标...",
+    "getSuggestion": "获取建议",
+    "generateIcon": "生成图标",
+    "categories": {
+      "technology": "科技",
+      "nature": "自然",
+      "business": "商务",
+      "social": "社交"
+    },
+    "suggestions": {
+      "technology": [
+        "简约的云计算图标",
+        "现代风格的数据库图标",
+        "科技感的芯片图标",
+        "网络连接图标",
+        "智能设备图标"
+      ],
+      "nature": [
+        "优雅的树叶图标",
+        "简约的山峰图标",
+        "水滴图标",
+        "太阳图标",
+        "月亮图标"
+      ],
+      "business": [
+        "专业的图表图标",
+        "简洁的文档图标",
+        "商务手提包图标",
+        "团队协作图标",
+        "时钟图标"
+      ],
+      "social": [
+        "对话气泡图标",
+        "用户头像图标",
+        "点赞图标",
+        "分享图标",
+        "评论图标"
+      ]
+    }
+  },
+  "exportOptions": {
+    "title": "导出选项",
+    "notice": "不同平台生成的图片保留时间不一致，请尽快下载保存到本地。过期的图片链接将无法访问。",
+    "shape": "形状",
+    "background": "背景",
+    "downloadFormat": "下载 {format}",
+    "shapes": {
+      "square": "正方形",
+      "rounded": "圆角",
+      "circle": "圆形"
+    },
+    "backgrounds": {
+      "transparent": "透明",
+      "white": "白色",
+      "black": "黑色",
+      "auto": "自动"
+    },
+    "messages": {
+      "noImages": "没有可下载的图片",
+      "downloadSuccess": "{format} 格式下载成功",
+      "openedInNewTab": "已在新标签页打开图片，请手动保存",
+      "downloadFailed": "下载失败，请重试",
+      "noImageGenerated": "没有可下载的图片，请先生成图片",
+      "invalidImageUrl": "图片链接格式无效，请重新生成图片",
+      "requestTimeout": "请求超时，请重试"
+    }
+  },
+  "apiConfig": {
+    "title": "API 配置",
+    "description": "配置你的 AI 图标生成服务提供商",
+    "buttonText": "API 配置",
+    "provider": "服务提供商",
+    "getApiKey": "获取 API Key",
+    "apiKey": "API Key",
+    "baseUrl": "Base URL",
+    "model": "模型",
+    "required": "*",
+    "cancel": "取消",
+    "save": "保存配置",
+    "badges": {
+      "default": "默认",
+      "configured": "已配置"
+    },
+    "defaultService": {
+      "title": "默认服务说明",
+      "features": [
+        "使用系统预配置的 API 服务",
+        "无需配置 API Key，开箱即用",
+        "适合快速体验和测试使用"
+      ]
+    },
+    "validation": {
+      "title": "请完善以下必填信息：",
+      "apiKeyRequired": "API Key 不能为空",
+      "baseUrlRequired": "Base URL 不能为空"
+    },
+    "security": {
+      "title": "安全提示：",
+      "description": "API Key 仅存储在本地浏览器，不会发送到其他服务器"
+    },
+    "apiFlow": {
+      "title": "🔄 API 调用流程说明",
+      "default": {
+        "flow": "• 浏览器 → 本地API(/api/generate) → 系统默认服务",
+        "description": "• 使用服务器端配置的API密钥"
+      },
+      "custom": {
+        "flow": "• 浏览器 → 本地API(/api/generate) → {provider}",
+        "descriptions": [
+          "• 你的API密钥在服务器端调用，保证安全性",
+          "• 浏览器网络面板只会显示对本地API的请求",
+          "• 实际的第三方API调用在服务器端完成"
+        ]
+      }
+    },
+    "providers": {
+      "default": {
+        "name": "默认服务",
+        "description": "使用系统默认配置"
+      },
+      "openai": {
+        "name": "OpenAI",
+        "description": "官方 OpenAI API"
+      },
+      "free-dall-e-proxy": {
+        "name": "Free DALL-E Proxy",
+        "description": "免费代理服务"
+      },
+      "console-d-run": {
+        "name": "console.d.run",
+        "description": "d.run 大模型服务平台"
+      }
+    }
+  },
+  "rateLimitStatus": {
+    "title": "API 调用限制:",
+    "loading": "加载中...",
+    "hourly": "每小时: ",
+    "minutely": "每分钟: ",
+    "times": " 次",
+    "errorFetch": "获取速率限制信息失败"
+  },
+  "rateLimit": {
+    "hourlyError": "已超过每小时请求限制",
+    "minutelyError": "已超过每分钟请求限制",
+    "hourlyMessage": "您已达到每小时 {limit} 次的请求限制。请在 {resetTime} 后再试。",
+    "minutelyMessage": "您已达到每分钟 {limit} 次的请求限制。请在 {resetTime} 后再试。"
+  },
+  "themeToggle": {
+    "toggleTheme": "切换主题"
+  },
+  "dialog": {
+    "close": "关闭"
+  },
+  "optimizedImage": {
+    "linkExpired": "图片链接已失效",
+    "retrying": "重试中... ({current}/{max})"
+  },
+  "previewPanel": {
+    "generating": "生成中...",
+    "loadFailed": "图片加载失败",
+    "viewDirectly": "点击直接查看",
+    "previewArea": "图标预览区域"
+  },
+  "historyPanel": {
+    "noHistory": "暂无历史记录",
+    "all": "全部",
+    "favorites": "收藏",
+    "clearHistory": "清空历史",
+    "historyTitle": "历史记录"
+  },
+  "iconGenerator": {
+    "errors": {
+      "generateFailed": "生成图标时出错，请稍后重试",
+      "requestFailed": "请求失败",
+      "requestLimited": "请求受限",
+      "rateLimitHourly": "每小时",
+      "rateLimitMinutely": "每分钟",
+      "rateLimitMessage": "已达到{type}请求限制。请在 {time} 后再试。",
+      "rateLimitMessageFallback": "已达到请求限制。请稍后再试。",
+      "minutes": "分钟",
+      "seconds": "秒",
+      "refreshLimitStatus": "刷新限制状态",
+      "closeError": "关闭错误提示",
+      "unknownError": "未知错误"
+    }
+  },
+  "notFound": {
+    "title": "页面未找到",
+    "description": "您访问的页面不存在。",
+    "goHome": "返回首页"
+  },
+  "siteHeader": {
+    "github": "GitHub",
+    "switchLanguage": "切换语言"
+  },
+  "site": {
+    "name": "AI 图标生成器",
+    "description": "使用 AI 生成专业的图标设计，支持多种风格和格式"
+  }
+}
