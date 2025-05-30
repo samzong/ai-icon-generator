@@ -2,7 +2,7 @@ export const siteConfig = {
   name: "AI Icon Generator",
   description: "使用 AI 生成专业的图标设计",
   url: process.env.NEXT_PUBLIC_APP_URL,
-  ogImage: "https://ui.shadcn.com/og.jpg",
+  ogImage: "/logo.png",
   links: {
     github: "https://github.com/samzong/ai-icon-generator",
   },

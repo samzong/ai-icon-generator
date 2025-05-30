@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { LanguageSwitcher } from "@/components/language-switcher"
@@ -17,7 +18,15 @@ export function SiteHeader() {
       <div className="container mx-auto flex h-14 items-center">
         
         <div className="mr-md flex">
-          <Link href="/" className="flex items-center space-x-sm">
+          <Link href="/" className="flex items-center space-x-2">
+            <Image
+              src="/logo64.png"
+              alt={siteConfig.name}
+              width={32}
+              height={32}
+              className="h-8 w-8"
+              priority
+            />
             <span className="text-lg font-bold text-primary-700 dark:text-primary-300">{siteConfig.name}</span>
           </Link>
         </div>
