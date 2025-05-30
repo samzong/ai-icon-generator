@@ -8,8 +8,48 @@ import { Analytics } from "@vercel/analytics/react";
 import "../globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
   title: "AI Icon Generator",
   description: "Generate professional icon designs using AI",
+  icons: {
+    icon: [
+      {
+        url: "/logo64.png",
+        sizes: "64x64",
+        type: "image/png",
+      },
+      {
+        url: "/logo.png",
+        sizes: "512x512",
+        type: "image/png",
+      }
+    ],
+    shortcut: "/logo64.png",
+    apple: "/logo.png",
+  },
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "AI Icon Generator",
+    description: "Generate professional icon designs using AI",
+    url: process.env.NEXT_PUBLIC_APP_URL,
+    siteName: "AI Icon Generator",
+    images: [
+      {
+        url: "/logo.png",
+        width: 512,
+        height: 512,
+        alt: "AI Icon Generator Logo",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "AI Icon Generator",
+    description: "Generate professional icon designs using AI",
+    images: ["/logo.png"],
+  },
 };
 
 export default async function LocaleLayout({
