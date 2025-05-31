@@ -192,6 +192,10 @@
     "noHistory": "No history records",
     "all": "All",
     "favorites": "Favorites",
+    "clientGenerated": "Client Generated",
+    "serverGenerated": "Server Generated",
+    "clientTag": "Client",
+    "serverTag": "Server",
     "clearHistory": "Clear History",
     "historyTitle": "History"
   },

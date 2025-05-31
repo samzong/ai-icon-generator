@@ -19,13 +19,14 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
   const t = useTranslations('historyPanel')
   const locale = useLocale()
   const [history, setHistory] = React.useState<HistoryItem[]>([])
-  const [filter, setFilter] = React.useState<"all" | "favorites">("all")
+  const [filter, setFilter] = React.useState<"all" | "favorites" | "client" | "server">("all")
   const [, forceUpdate] = React.useReducer(x => x + 1, 0) // Force re-render mechanism
 
   React.useEffect(() => {
     // Function to refresh history (defined inside useEffect to avoid stale closure)
     const refreshHistory = () => {
       const newHistory = iconStorage.getHistory()
+      console.log('HistoryPanel: Refreshing history, got:', newHistory)
       setHistory(newHistory)
       forceUpdate() // Force component re-render
     }
@@ -35,6 +36,7 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
 
     // Subscribe to history update events
     const unsubscribe = eventManager.subscribe(EVENTS.HISTORY_UPDATE, () => {
+      console.log('HistoryPanel: Received HISTORY_UPDATE event')
       refreshHistory()
     })
 
@@ -42,9 +44,24 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
   }, []) // Remove refreshHistory from dependencies
 
   const filteredHistory = React.useMemo(() => {
-    const filtered = filter === "favorites"
-      ? history.filter((item) => item.isFavorite)
-      : history
+    let filtered = history
+    
+    console.log('HistoryPanel: Filtering history with filter:', filter)
+    console.log('HistoryPanel: Original history:', history)
+    
+    // Filter by favorites
+    if (filter === "favorites") {
+      filtered = filtered.filter((item) => item.isFavorite)
+    }
+    // Filter by generation type
+    else if (filter === "client") {
+      filtered = filtered.filter((item) => item.generationType === 'client')
+    }
+    else if (filter === "server") {
+      filtered = filtered.filter((item) => item.generationType === 'server' || !item.generationType) // Include legacy items without generationType
+    }
+    
+    console.log('HistoryPanel: Filtered history:', filtered)
     return filtered
   }, [history, filter])
 
@@ -84,6 +101,20 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
           >
             {t('favorites')}
           </Button>
+          <Button
+            variant={filter === "client" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("client")}
+          >
+            {t('clientGenerated')}
+          </Button>
+          <Button
+            variant={filter === "server" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setFilter("server")}
+          >
+            {t('serverGenerated')}
+          </Button>
         </div>
         <Button
           variant="outline"
@@ -113,12 +144,19 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
               />
             </div>
             <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {formatDistanceToNow(item.timestamp, {
-                  addSuffix: true,
-                  locale: locale === 'zh-CN' ? zhCN : enUS,
-                })}
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xs text-muted-foreground">
+                  {formatDistanceToNow(item.timestamp, {
+                    addSuffix: true,
+                    locale: locale === 'zh-CN' ? zhCN : enUS,
+                  })}
+                </span>
+                {item.generationType && (
+                  <span className="text-xs text-muted-foreground">
+                    {item.generationType === 'client' ? t('clientTag') : t('serverTag')}
+                  </span>
+                )}
+              </div>
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"

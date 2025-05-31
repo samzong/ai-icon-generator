@@ -192,6 +192,10 @@
     "noHistory": "暂无历史记录",
     "all": "全部",
     "favorites": "收藏",
+    "clientGenerated": "本地生成",
+    "serverGenerated": "远端生成",
+    "clientTag": "本地",
+    "serverTag": "远端",
     "clearHistory": "清空历史",
     "historyTitle": "历史记录"
   },

@@ -30,6 +30,7 @@ import {
   type ApiProviderConfig,
 } from "@/lib/storage";
 import { getProviderInfo, validateApiConfig, type ValidationError } from "@/lib/api-providers";
+import { eventManager, EVENTS } from "@/lib/events";
 import { useTranslations } from 'next-intl';
 
 export function ApiConfigDialog() {
@@ -58,6 +59,9 @@ export function ApiConfigDialog() {
       setApiConfig(config);
       setSavedConfig(config);
       setIsOpen(false);
+      
+      // Trigger history update event to refresh history panel
+      eventManager.emit(EVENTS.HISTORY_UPDATE);
     }
   };
 

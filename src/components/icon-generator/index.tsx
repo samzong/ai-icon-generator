@@ -41,6 +41,7 @@ export function IconGenerator() {
           prompt,
           style,
           imageUrl: cachedUrl,
+          generationType: shouldUseClientSideCall() ? 'client' : 'server',
         })
         
         // Trigger history update event
@@ -72,6 +73,7 @@ export function IconGenerator() {
           prompt,
           style,
           imageUrl: imageUrl,
+          generationType: 'client',
         })
         
         // Trigger history update event
@@ -128,14 +130,25 @@ export function IconGenerator() {
 
         const data = await response.json()
         
-        iconCache.set(cacheKey, data.url)
-        setImageUrl(data.url)
-
-        iconStorage.addToHistory({
+        console.log('Server generation successful, adding to history:', {
           prompt,
           style,
           imageUrl: data.url,
+          generationType: 'server'
         })
+        
+        iconCache.set(cacheKey, data.url)
+        setImageUrl(data.url)
+
+        const historyItem = iconStorage.addToHistory({
+          prompt,
+          style,
+          imageUrl: data.url,
+          generationType: 'server',
+        })
+        
+        console.log('History item added:', historyItem)
+        console.log('Current history after adding:', iconStorage.getHistory())
         
         // Trigger history update event
         eventManager.emit(EVENTS.HISTORY_UPDATE)

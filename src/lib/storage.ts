@@ -5,6 +5,7 @@ export interface HistoryItem {
   imageUrl: string
   timestamp: number
   isFavorite: boolean
+  generationType?: 'client' | 'server' // 标识生成方式：客户端直连或服务端代理
 }
 
 // Utility function to generate UUID that works in both browser and Node.js
