@@ -132,13 +132,6 @@ export function IconGenerator() {
         
         iconCache.set(cacheKey, data.url)
         setImageUrl(data.url)
-
-        const historyItem = iconStorage.addToHistory({
-          prompt,
-          style,
-          imageUrl: data.url,
-          generationType: 'server',
-        })
                 
         // Trigger history update event
         eventManager.emit(EVENTS.HISTORY_UPDATE)
