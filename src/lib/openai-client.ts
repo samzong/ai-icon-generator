@@ -7,7 +7,8 @@ import {
   parseApiResponse,
   handleHttpError,
   handleNetworkError,
-  shouldUseClientSideCall
+  shouldUseClientSideCall,
+  sanitizeRequestBody
 } from "./icon-generation-core"
 
 // Client-side OpenAI API call
@@ -43,6 +44,29 @@ export async function generateIconClient(
 
     if (!response.ok) {
       const errorText = await response.text()
+      
+      // If we get an "unknown parameter" error specifically for response_format, retry without it
+      if (response.status === 400 && errorText.includes('response_format') && errorText.includes('unknown parameter')) {
+        console.warn('Provider does not support response_format parameter, retrying without it...')
+        
+        // Sanitize the request body to remove unsupported parameters
+        const sanitizedBody = sanitizeRequestBody(requestData.body, providerConfig.baseUrl)
+        
+        const retryResponse = await fetch(requestData.url, {
+          method: 'POST',
+          headers: requestData.headers,
+          body: JSON.stringify(sanitizedBody),
+        })
+
+        if (!retryResponse.ok) {
+          const retryErrorText = await retryResponse.text()
+          throw handleHttpError(retryResponse.status, retryErrorText)
+        }
+
+        const retryData = await retryResponse.json()
+        return parseApiResponse(retryData, config.selectedProvider)
+      }
+      
       throw handleHttpError(response.status, errorText)
     }
 

@@ -26,6 +26,31 @@ export function createEnhancedPrompt(prompt: string, style: string, size: '256x2
   return `"Create a professional macOS app icon with a ${style} style (e.g., modern, minimalist, flat). The icon should represent a single, unique, and memorable subject based on the user's simple and concise description: '${prompt}', which represents the main theme or element of the icon. The icon must be centered, isolated on a fully transparent background, with NO frames, borders, or UI elements around it. Ensure the design is simple, with NO additional decorative elements, and suitable as a macOS app icon or GitHub project logo. The icon should be easily recognizable even at small sizes. Use a cohesive color palette with 2-3 appropriate colors (e.g., shades of blue, gray, or green to suggest technology and professionalism) and maintain visual balance. The final image must be exactly ${size} pixels in resolution, high-quality, and contain ONLY the icon itself with NOTHING else, ensuring it is ready for immediate use in macOS and GitHub contexts."`
 }
 
+// Check if a provider supports response_format parameter
+export function supportsResponseFormat(baseUrl?: string): boolean {
+  if (!baseUrl) return true // Default to true for official OpenAI API
+  
+  // Official OpenAI domains that support response_format
+  const supportedDomains = [
+    'api.openai.com',
+    'dalle.feiyuyu.net' // Known working proxy
+  ]
+  
+  return supportedDomains.some(domain => baseUrl.includes(domain))
+}
+
+// Remove unsupported parameters from request body
+export function sanitizeRequestBody(body: Record<string, unknown>, baseUrl?: string): Record<string, unknown> {
+  const sanitized = { ...body }
+  
+  // Remove response_format if provider doesn't support it
+  if (!supportsResponseFormat(baseUrl)) {
+    delete sanitized.response_format
+  }
+  
+  return sanitized
+}
+
 // Prepare request data for different providers (client-side)
 export function prepareClientRequest(
   providerConfig: ApiProviderConfig,
@@ -37,35 +62,47 @@ export function prepareClientRequest(
   
   switch (config.selectedProvider) {
     case 'openai':
+      const baseBody = {
+        model: providerConfig.model || 'gpt-image-1',
+        prompt,
+        size,
+        n: 1,
+      }
+      
+      // Only add response_format if provider supports it
+      const body = supportsResponseFormat(providerConfig.baseUrl) 
+        ? { ...baseBody, response_format: responseFormat }
+        : baseBody
+      
       return {
         url: `${providerConfig.baseUrl}/images/generations`,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${providerConfig.apiKey}`,
         },
-        body: {
-          model: providerConfig.model || 'dall-e-3',
-          prompt,
-          size,
-          response_format: responseFormat,
-          n: 1,
-        }
+        body
       }
 
     case 'free-dall-e-proxy':
+      const proxyBaseBody = {
+        model: providerConfig.model || 'gpt-image-1',
+        prompt,
+        size,
+        n: 1,
+      }
+      
+      // Only add response_format if provider supports it
+      const proxyBody = supportsResponseFormat(providerConfig.baseUrl)
+        ? { ...proxyBaseBody, response_format: responseFormat }
+        : proxyBaseBody
+      
       return {
         url: `${providerConfig.baseUrl}/images/generations`,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${providerConfig.apiKey}`,
         },
-        body: {
-          model: providerConfig.model || 'gpt-image-1',
-          prompt,
-          size,
-          response_format: responseFormat,
-          n: 1,
-        }
+        body: proxyBody
       }
 
     case 'console-d-run':
@@ -171,6 +208,13 @@ export function parseApiResponse(data: unknown, provider: string): GenerateIconR
 
 // Handle HTTP errors with user-friendly messages
 export function handleHttpError(status: number, errorText: string): Error {
+  if (status === 400 && errorText.includes('unknown parameter')) {
+    if (errorText.includes('response_format')) {
+      return new Error('API provider does not support response_format parameter. This is expected for some proxy services.')
+    }
+    return new Error(`Invalid request parameter: ${errorText}`)
+  }
+  
   switch (status) {
     case 401:
       return new Error('Invalid API key. Please check your API configuration.')

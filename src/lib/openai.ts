@@ -86,6 +86,29 @@ export async function generateIcon(
       console.error(`try ${attempt}/${maxRetries} failed:`, error)
 
       if (error instanceof APIError) {
+        if (error.status === 400 && error.message.includes('response_format') && error.message.includes('unknown parameter')) {
+          console.warn('Provider does not support response_format parameter, retrying without it...')
+          
+          // Retry without response_format parameter
+          try {
+            const enhancedPrompt = createEnhancedPrompt(prompt, style, size)
+            const client = getOpenAIClient()
+            
+            // Prepare request without response_format
+            const baseParams = {
+              model: providerConfig.model || process.env.MODEL_NAME || 'gpt-image-1',
+              prompt: enhancedPrompt,
+              size: size as '256x256' | '512x512' | '1024x1024',
+            }
+            
+            const response = await client!.images.generate(baseParams)
+            return parseApiResponse(response, getApiConfig().selectedProvider)
+          } catch (retryError) {
+            console.error('Retry without response_format also failed:', retryError)
+            throw new Error("api error: response_format parameter not supported by this provider")
+          }
+        }
+        
         switch (error.status) {
           case 401:
             throw new Error("invalid api key")
