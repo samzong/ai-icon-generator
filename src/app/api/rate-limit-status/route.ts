@@ -23,7 +23,7 @@ export async function GET() {
     rateLimitInfo.hourRemaining = testResponse.headers.get('X-RateLimit-Remaining-Hour')
     rateLimitInfo.minuteRemaining = testResponse.headers.get('X-RateLimit-Remaining-Minute')
   } catch (error) {
-    console.error('获取速率限制信息失败:', error)
+    console.error('Failed to get rate limit information:', error)
   }
 
   return NextResponse.json(rateLimitInfo)

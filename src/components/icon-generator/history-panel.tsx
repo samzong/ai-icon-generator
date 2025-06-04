@@ -22,32 +22,34 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
   const [filter, setFilter] = React.useState<"all" | "favorites" | "client" | "server">("all")
   const [, forceUpdate] = React.useReducer(x => x + 1, 0) // Force re-render mechanism
 
-  React.useEffect(() => {
-    // Function to refresh history (defined inside useEffect to avoid stale closure)
-    const refreshHistory = () => {
-      const newHistory = iconStorage.getHistory()
-      console.log('HistoryPanel: Refreshing history, got:', newHistory)
-      setHistory(newHistory)
-      forceUpdate() // Force component re-render
+  // Use useCallback to memoize refreshHistory function and prevent unnecessary re-renders
+  const refreshHistory = React.useCallback(() => {
+    const newHistory = iconStorage.getHistory()
+    setHistory(newHistory)
+    
+    // Reset filter to "all" when history updates to ensure all items are visible
+    // This prevents the issue where switching providers hides previously generated items
+    if (newHistory.length > 0 && filter !== "all") {
+      setFilter("all")
     }
     
+    forceUpdate() // Force component re-render
+  }, [filter]) // Include filter in dependencies for proper state synchronization
+
+  React.useEffect(() => {
     // Initial load
     refreshHistory()
 
     // Subscribe to history update events
     const unsubscribe = eventManager.subscribe(EVENTS.HISTORY_UPDATE, () => {
-      console.log('HistoryPanel: Received HISTORY_UPDATE event')
       refreshHistory()
     })
 
     return unsubscribe
-  }, []) // Remove refreshHistory from dependencies
+  }, [refreshHistory]) // Use refreshHistory in dependencies
 
   const filteredHistory = React.useMemo(() => {
     let filtered = history
-    
-    console.log('HistoryPanel: Filtering history with filter:', filter)
-    console.log('HistoryPanel: Original history:', history)
     
     // Filter by favorites
     if (filter === "favorites") {
@@ -61,7 +63,6 @@ export function HistoryPanel({ onSelect }: HistoryPanelProps) {
       filtered = filtered.filter((item) => item.generationType === 'server' || !item.generationType) // Include legacy items without generationType
     }
     
-    console.log('HistoryPanel: Filtered history:', filtered)
     return filtered
   }, [history, filter])
 

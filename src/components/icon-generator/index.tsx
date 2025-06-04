@@ -130,30 +130,19 @@ export function IconGenerator() {
 
         const data = await response.json()
         
-        console.log('Server generation successful, adding to history:', {
-          prompt,
-          style,
-          imageUrl: data.url,
-          generationType: 'server'
-        })
-        
         iconCache.set(cacheKey, data.url)
         setImageUrl(data.url)
+                
+        // Trigger history update event
+        eventManager.emit(EVENTS.HISTORY_UPDATE)
 
-        const historyItem = iconStorage.addToHistory({
+        iconStorage.addToHistory({
           prompt,
           style,
           imageUrl: data.url,
           generationType: 'server',
         })
-        
-        console.log('History item added:', historyItem)
-        console.log('Current history after adding:', iconStorage.getHistory())
-        
-        // Trigger history update event
-        eventManager.emit(EVENTS.HISTORY_UPDATE)
       }
-      
       // Trigger rate limit update event
       eventManager.emit(EVENTS.RATE_LIMIT_UPDATE)
     } catch (error) {
