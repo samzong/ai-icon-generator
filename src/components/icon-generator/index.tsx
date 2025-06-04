@@ -135,8 +135,14 @@ export function IconGenerator() {
                 
         // Trigger history update event
         eventManager.emit(EVENTS.HISTORY_UPDATE)
+
+        iconStorage.addToHistory({
+          prompt,
+          style,
+          imageUrl: data.url,
+          generationType: 'server',
+        })
       }
-      
       // Trigger rate limit update event
       eventManager.emit(EVENTS.RATE_LIMIT_UPDATE)
     } catch (error) {
