@@ -10,7 +10,8 @@ import {
 } from "./icon-generation-core"
 
 if (!process.env.OPENAI_API_KEY) {
-  throw new Error("Missing OPENAI_API_KEY environment variable")
+  console.error("Missing OPENAI_API_KEY environment variable")
+  process.exit(1)
 }
 
 let openaiInstance: OpenAI | null = null
@@ -83,7 +84,14 @@ export async function generateIcon(
 
     } catch (error) {
       attempt++
-      console.error(`try ${attempt}/${maxRetries} failed:`, error)
+      // 仅记录错误类型和状态码，避免泄露敏感信息
+      if (error instanceof APIError) {
+        console.error(`try ${attempt}/${maxRetries} failed: API Error ${error.status}`)
+      } else if (error instanceof Error) {
+        console.error(`try ${attempt}/${maxRetries} failed: ${error.name}`)
+      } else {
+        console.error(`try ${attempt}/${maxRetries} failed: Unknown error`)
+      }
 
       if (error instanceof APIError) {
         if (error.status === 400 && error.message.includes('response_format') && error.message.includes('unknown parameter')) {
@@ -103,8 +111,8 @@ export async function generateIcon(
             
             const response = await client!.images.generate(baseParams)
             return parseApiResponse(response, getApiConfig().selectedProvider)
-          } catch (retryError) {
-            console.error('Retry without response_format also failed:', retryError)
+          } catch {
+            console.error('Retry without response_format also failed')
             throw new Error("api error: response_format parameter not supported by this provider")
           }
         }
@@ -131,7 +139,8 @@ export async function generateIcon(
             }
             throw new Error("server error")
           default:
-            throw new Error(`api error: ${error.message}`)
+            // 避免泄露详细的API错误信息
+            throw new Error("api error: request failed")
         }
       }
 
