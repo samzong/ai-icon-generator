@@ -74,27 +74,41 @@ export async function POST(request: Request) {
       throw new Error("Invalid response format from generateIcon")
     }
   } catch (error) {
-    // 记录错误但不泄露内部信息
-    console.error("Error in generate route:", error instanceof Error ? error.name : "Unknown error")
+    // 安全的错误日志记录 - 只记录错误类型，不记录详细信息
+    const errorType = error instanceof Error ? error.constructor.name : "UnknownError"
+    console.error(`Generate API error: ${errorType}`)
     
-    // 根据错误类型返回适当的错误消息
+    // 安全的错误分类处理 - 避免泄露内部实现细节
     if (error instanceof SyntaxError) {
-      return new NextResponse("Invalid JSON in request body", { status: 400 })
+      return new NextResponse("Invalid request format", { status: 400 })
     }
     
-    if (error instanceof Error && error.message.includes("api key")) {
-      return new NextResponse("API configuration error", { status: 503 })
+    // 检查已知的业务错误类型，但不暴露原始错误消息
+    if (error instanceof Error) {
+      const errorMsg = error.message.toLowerCase()
+      
+      // API配置相关错误
+      if (errorMsg.includes("api key") || errorMsg.includes("unauthorized") || errorMsg.includes("invalid api")) {
+        return new NextResponse("Service configuration error", { status: 503 })
+      }
+      
+      // 速率限制错误
+      if (errorMsg.includes("rate limit") || errorMsg.includes("too many requests")) {
+        return new NextResponse("Request limit exceeded", { status: 429 })
+      }
+      
+      // 网络或连接错误
+      if (errorMsg.includes("network") || errorMsg.includes("timeout") || errorMsg.includes("connection")) {
+        return new NextResponse("Service temporarily unavailable", { status: 503 })
+      }
+      
+      // API提供商相关错误
+      if (errorMsg.includes("model") || errorMsg.includes("invalid") || errorMsg.includes("bad request")) {
+        return new NextResponse("Request could not be processed", { status: 400 })
+      }
     }
     
-    if (error instanceof Error && error.message.includes("rate limit")) {
-      return new NextResponse("Rate limit exceeded", { status: 429 })
-    }
-    
-    if (error instanceof Error && error.message.includes("network")) {
-      return new NextResponse("Service temporarily unavailable", { status: 503 })
-    }
-    
-    // 默认的通用错误响应
+    // 默认的安全错误响应 - 不暴露任何内部信息
     return new NextResponse("Service temporarily unavailable", { status: 503 })
   }
 } 
