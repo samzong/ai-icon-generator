@@ -14,43 +14,70 @@ if (!process.env.OPENAI_API_KEY) {
   process.exit(1)
 }
 
-let openaiInstance: OpenAI | null = null
-let currentConfigHash: string | null = null
+// 客户端缓存管理（避免全局状态污染）
+class OpenAIClientManager {
+  private clientCache: Map<string, { client: OpenAI; timestamp: number }> = new Map()
+  private readonly CACHE_TTL = 1000 * 60 * 5 // 5分钟缓存有效期
 
-function getConfigHash(config: ApiProviderConfig): string {
-  return JSON.stringify(config)
+  private getConfigHash(config: ApiProviderConfig): string {
+    return JSON.stringify(config)
+  }
+
+  private cleanExpiredClients(): void {
+    const now = Date.now()
+    for (const [hash, cached] of this.clientCache.entries()) {
+      if (now - cached.timestamp > this.CACHE_TTL) {
+        this.clientCache.delete(hash)
+      }
+    }
+  }
+
+  public getClient(): OpenAI {
+    this.cleanExpiredClients()
+    
+    const config = getApiConfig()
+    const providerConfig = getSelectedProviderConfig()
+    const configHash = this.getConfigHash(providerConfig)
+    
+    // 检查缓存中是否有有效的客户端实例
+    const cached = this.clientCache.get(configHash)
+    if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+      return cached.client
+    }
+
+    // 创建新的客户端实例
+    let apiKey: string
+    let baseURL: string | undefined
+
+    if (config.selectedProvider === 'default') {
+      apiKey = process.env.OPENAI_API_KEY!
+      baseURL = process.env.OPENAI_API_BASE_URL
+    } else {
+      apiKey = providerConfig.apiKey
+      baseURL = providerConfig.baseUrl || process.env.OPENAI_API_BASE_URL
+    }
+
+    const client = new OpenAI({
+      apiKey,
+      baseURL,
+      maxRetries: 3,
+    })
+
+    // 缓存新创建的客户端
+    this.clientCache.set(configHash, {
+      client,
+      timestamp: Date.now()
+    })
+
+    return client
+  }
 }
 
+// 创建客户端管理器实例
+const clientManager = new OpenAIClientManager()
+
 export function getOpenAIClient() {
-  const config = getApiConfig()
-  const providerConfig = getSelectedProviderConfig()
-  const configHash = getConfigHash(providerConfig)
-  
-  // Only recreate client if config changed
-  if (openaiInstance && currentConfigHash === configHash) {
-    return openaiInstance
-  }
-
-  // For default provider, use environment variables
-  let apiKey: string
-  let baseURL: string | undefined
-
-  if (config.selectedProvider === 'default') {
-    apiKey = process.env.OPENAI_API_KEY!
-    baseURL = process.env.OPENAI_API_BASE_URL
-  } else {
-    apiKey = providerConfig.apiKey
-    baseURL = providerConfig.baseUrl || process.env.OPENAI_API_BASE_URL
-  }
-
-  openaiInstance = new OpenAI({
-    apiKey,
-    baseURL,
-    maxRetries: 3,
-  })
-
-  currentConfigHash = configHash
-  return openaiInstance
+  return clientManager.getClient()
 }
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
