@@ -20,29 +20,73 @@ interface RateLimitStore {
   minutelyRequests: Map<string, RequestRecord>;
 }
 
-const store: RateLimitStore = {
-  hourlyRequests: new Map(),
-  minutelyRequests: new Map(),
-};
+// 速率限制存储管理类（单例模式）
+class RateLimitManager {
+  private static instance: RateLimitManager;
+  private store: RateLimitStore;
+  private cleanupInterval: NodeJS.Timeout | null = null;
+  private readonly CLEANUP_INTERVAL = 1000 * 60 * 60; // 1小时清理一次
 
-const CLEANUP_INTERVAL = 1000 * 60 * 60; // 1小时清理一次
-setInterval(() => {
-  const now = Date.now();
-  const hourAgo = now - 1000 * 60 * 60;
-  const minuteAgo = now - 1000 * 60;
+  private constructor() {
+    this.store = {
+      hourlyRequests: new Map(),
+      minutelyRequests: new Map(),
+    };
+    this.startCleanup();
+  }
 
-  for (const [ip, record] of store.hourlyRequests.entries()) {
-    if (record.timestamp < hourAgo) {
-      store.hourlyRequests.delete(ip);
+  public static getInstance(): RateLimitManager {
+    if (!RateLimitManager.instance) {
+      RateLimitManager.instance = new RateLimitManager();
+    }
+    return RateLimitManager.instance;
+  }
+
+  private startCleanup(): void {
+    if (this.cleanupInterval !== null) {
+      return; // 已经启动清理任务
+    }
+
+    this.cleanupInterval = setInterval(() => {
+      this.performCleanup();
+    }, this.CLEANUP_INTERVAL);
+  }
+
+  private performCleanup(): void {
+    const now = Date.now();
+    const hourAgo = now - 1000 * 60 * 60;
+    const minuteAgo = now - 1000 * 60;
+
+    // 清理过期的小时记录
+    for (const [ip, record] of this.store.hourlyRequests.entries()) {
+      if (record.timestamp < hourAgo) {
+        this.store.hourlyRequests.delete(ip);
+      }
+    }
+
+    // 清理过期的分钟记录
+    for (const [ip, record] of this.store.minutelyRequests.entries()) {
+      if (record.timestamp < minuteAgo) {
+        this.store.minutelyRequests.delete(ip);
+      }
     }
   }
 
-  for (const [ip, record] of store.minutelyRequests.entries()) {
-    if (record.timestamp < minuteAgo) {
-      store.minutelyRequests.delete(ip);
+  private stopCleanup(): void {
+    if (this.cleanupInterval !== null) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
     }
   }
-}, CLEANUP_INTERVAL);
+
+  public getStore(): RateLimitStore {
+    return this.store;
+  }
+}
+
+// 获取全局单例实例
+const rateLimitManager = RateLimitManager.getInstance();
+const store = rateLimitManager.getStore();
 
 const MAX_REQUESTS_PER_HOUR = parseInt(
   process.env.MAX_REQUESTS_PER_HOUR || "10",
