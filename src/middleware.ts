@@ -20,73 +20,264 @@ interface RateLimitStore {
   minutelyRequests: Map<string, RequestRecord>;
 }
 
-// 速率限制存储管理类（单例模式）
+// Edge Runtime兼容的全局实例注册表
+const RATE_LIMIT_MANAGER_SYMBOL = Symbol.for('__rate_limit_manager_instances__');
+
+interface GlobalThis {
+  [RATE_LIMIT_MANAGER_SYMBOL]?: {
+    instances: Set<WeakRef<RateLimitManager>>;
+    activeInstance?: WeakRef<RateLimitManager>;
+    registry?: FinalizationRegistry<string>;
+  };
+}
+
+// Edge Runtime环境检测
+function isEdgeRuntime(): boolean {
+  return (
+    (typeof globalThis !== 'undefined' && 'EdgeRuntime' in globalThis) ||
+    (typeof process !== 'undefined' && process.env.VERCEL_REGION !== undefined) ||
+    (typeof process !== 'undefined' && process.env.EDGE_RUNTIME === '1')
+  );
+}
+
+// 速率限制存储管理类（Edge Runtime优化单例模式）
 class RateLimitManager {
   private static instance: RateLimitManager;
   private store: RateLimitStore;
-  private cleanupInterval: NodeJS.Timeout | null = null;
-  private readonly CLEANUP_INTERVAL = 1000 * 60 * 60; // 1小时清理一次
+  private cleanupInterval: NodeJS.Timeout | number | null = null;
+  private readonly CLEANUP_INTERVAL: number;
+  private readonly isDestroyed = { value: false };
+  private readonly instanceId = Math.random().toString(36).substring(2);
 
   private constructor() {
     this.store = {
       hourlyRequests: new Map(),
       minutelyRequests: new Map(),
     };
+    
+    // Edge Runtime中使用更短的清理间隔以减少内存压力
+    this.CLEANUP_INTERVAL = isEdgeRuntime() ? 1000 * 60 * 15 : 1000 * 60 * 60; // 15分钟 vs 1小时
+    
+    this.registerInstance();
     this.startCleanup();
   }
 
+  private registerInstance(): void {
+    if (typeof globalThis === 'undefined') return;
+
+    const global = globalThis as GlobalThis;
+    
+    // 初始化全局注册表
+    if (!global[RATE_LIMIT_MANAGER_SYMBOL]) {
+      global[RATE_LIMIT_MANAGER_SYMBOL] = {
+        instances: new Set(),
+        registry: new FinalizationRegistry((instanceId: string) => {
+          // 清理回调 - instanceId用于标识已回收的实例
+          console.debug('[RateLimitManager] Instance', instanceId, 'was garbage collected');
+        })
+      };
+    }
+
+    const registry = global[RATE_LIMIT_MANAGER_SYMBOL]!;
+    
+    // 清理已垃圾回收的实例引用
+    registry.instances.forEach(weakRef => {
+      if (weakRef.deref() === undefined) {
+        registry.instances.delete(weakRef);
+      }
+    });
+
+    // 销毁其他活动实例
+    registry.instances.forEach(weakRef => {
+      const instance = weakRef.deref();
+      if (instance && instance !== this) {
+        instance.destroy();
+      }
+    });
+
+    // 注册当前实例
+    const thisWeakRef = new WeakRef(this);
+    registry.instances.add(thisWeakRef);
+    registry.activeInstance = thisWeakRef;
+    
+    // 注册到终结器以确保清理
+    if (registry.registry) {
+      registry.registry.register(this, this.instanceId);
+    }
+  }
+
   public static getInstance(): RateLimitManager {
-    if (!RateLimitManager.instance) {
+    if (typeof globalThis !== 'undefined') {
+      const global = globalThis as GlobalThis;
+      const registry = global[RATE_LIMIT_MANAGER_SYMBOL];
+      
+      // 尝试获取现有的活动实例
+      if (registry?.activeInstance) {
+        const existing = registry.activeInstance.deref();
+        if (existing && !existing.isDestroyed.value) {
+          return existing;
+        }
+      }
+    }
+
+    // 创建新实例
+    if (!RateLimitManager.instance || RateLimitManager.instance.isDestroyed.value) {
       RateLimitManager.instance = new RateLimitManager();
     }
+    
     return RateLimitManager.instance;
   }
 
   private startCleanup(): void {
-    if (this.cleanupInterval !== null) {
-      return; // 已经启动清理任务
+    if (this.cleanupInterval !== null || this.isDestroyed.value) {
+      return; // 已经启动清理任务或实例已销毁
     }
 
-    this.cleanupInterval = setInterval(() => {
-      this.performCleanup();
-    }, this.CLEANUP_INTERVAL);
+    // Edge Runtime兼容的定时器创建
+    const createTimer = () => {
+      if (typeof setTimeout === 'undefined') return null;
+      
+      const performCleanupWithCheck = () => {
+        if (!this.isDestroyed.value) {
+          this.performCleanup();
+          // 递归调用以保持清理循环
+          this.cleanupInterval = createTimer();
+        }
+      };
+
+      return setTimeout(performCleanupWithCheck, this.CLEANUP_INTERVAL);
+    };
+
+    this.cleanupInterval = createTimer();
   }
 
   private performCleanup(): void {
+    if (this.isDestroyed.value) return;
+
     const now = Date.now();
     const hourAgo = now - 1000 * 60 * 60;
     const minuteAgo = now - 1000 * 60;
 
-    // 清理过期的小时记录
-    for (const [ip, record] of this.store.hourlyRequests.entries()) {
-      if (record.timestamp < hourAgo) {
-        this.store.hourlyRequests.delete(ip);
+    try {
+      // 清理过期的小时记录
+      for (const [ip, record] of this.store.hourlyRequests.entries()) {
+        if (record.timestamp < hourAgo) {
+          this.store.hourlyRequests.delete(ip);
+        }
       }
-    }
 
-    // 清理过期的分钟记录
-    for (const [ip, record] of this.store.minutelyRequests.entries()) {
-      if (record.timestamp < minuteAgo) {
-        this.store.minutelyRequests.delete(ip);
+      // 清理过期的分钟记录
+      for (const [ip, record] of this.store.minutelyRequests.entries()) {
+        if (record.timestamp < minuteAgo) {
+          this.store.minutelyRequests.delete(ip);
+        }
       }
+
+      // Edge Runtime中的额外内存压力处理
+      if (isEdgeRuntime()) {
+        // 如果Map过大，进行强制清理
+        const maxSize = 10000;
+        if (this.store.hourlyRequests.size > maxSize) {
+          const entries = Array.from(this.store.hourlyRequests.entries());
+          entries.sort((a, b) => b[1].timestamp - a[1].timestamp);
+          this.store.hourlyRequests.clear();
+          entries.slice(0, maxSize / 2).forEach(([ip, record]) => {
+            this.store.hourlyRequests.set(ip, record);
+          });
+        }
+        
+        if (this.store.minutelyRequests.size > maxSize) {
+          const entries = Array.from(this.store.minutelyRequests.entries());
+          entries.sort((a, b) => b[1].timestamp - a[1].timestamp);
+          this.store.minutelyRequests.clear();
+          entries.slice(0, maxSize / 2).forEach(([ip, record]) => {
+            this.store.minutelyRequests.set(ip, record);
+          });
+        }
+      }
+    } catch (error) {
+      // 清理过程中的错误不应该影响应用运行
+      console.warn('[RateLimitManager] Cleanup error:', error);
     }
   }
 
   private stopCleanup(): void {
     if (this.cleanupInterval !== null) {
-      clearInterval(this.cleanupInterval);
+      if (typeof clearTimeout !== 'undefined') {
+        clearTimeout(this.cleanupInterval as number);
+      }
       this.cleanupInterval = null;
     }
   }
 
+  public destroy(): void {
+    if (this.isDestroyed.value) return;
+    
+    this.isDestroyed.value = true;
+    this.stopCleanup();
+    
+    // 清理存储
+    if (this.store.hourlyRequests) {
+      this.store.hourlyRequests.clear();
+    }
+    if (this.store.minutelyRequests) {
+      this.store.minutelyRequests.clear();
+    }
+
+    // 从全局注册表中移除
+    if (typeof globalThis !== 'undefined') {
+      const global = globalThis as GlobalThis;
+      const registry = global[RATE_LIMIT_MANAGER_SYMBOL];
+      
+      if (registry) {
+        registry.instances.forEach(weakRef => {
+          if (weakRef.deref() === this) {
+            registry.instances.delete(weakRef);
+          }
+        });
+        
+        if (registry.activeInstance?.deref() === this) {
+          registry.activeInstance = undefined;
+        }
+      }
+    }
+  }
+
   public getStore(): RateLimitStore {
+    if (this.isDestroyed.value) {
+      throw new Error('RateLimitManager instance has been destroyed');
+    }
     return this.store;
+  }
+
+  public getInstanceId(): string {
+    return this.instanceId;
+  }
+
+  public isActive(): boolean {
+    return !this.isDestroyed.value;
   }
 }
 
-// 获取全局单例实例
-const rateLimitManager = RateLimitManager.getInstance();
-const store = rateLimitManager.getStore();
+// 获取全局单例实例的安全封装函数
+function getRateLimitManager(): RateLimitManager {
+  try {
+    const manager = RateLimitManager.getInstance();
+    if (!manager.isActive()) {
+      // 如果实例已销毁，创建新实例
+      return RateLimitManager.getInstance();
+    }
+    return manager;
+  } catch (error) {
+    console.warn('[RateLimitManager] Error getting instance, creating new one:', error);
+    return RateLimitManager.getInstance();
+  }
+}
+
+function getRateLimitStore(): RateLimitStore {
+  const manager = getRateLimitManager();
+  return manager.getStore();
+}
 
 const MAX_REQUESTS_PER_HOUR = parseInt(
   process.env.MAX_REQUESTS_PER_HOUR || "10",
@@ -127,6 +318,9 @@ export default async function middleware(request: NextRequest) {
       const isHeadRequest = request.method === "HEAD";
       const locale = getLocaleFromPath(request.headers.get('referer') || '/en');
       const messages = await getRateLimitMessages(locale);
+
+      // 获取当前活动的存储实例
+      const store = getRateLimitStore();
 
       const hourAgo = now - 1000 * 60 * 60;
       let hourlyRecord = store.hourlyRequests.get(ip);
