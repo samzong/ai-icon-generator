@@ -133,22 +133,16 @@ class RateLimitManager {
       return; // 已经启动清理任务或实例已销毁
     }
 
-    // Edge Runtime兼容的定时器创建
-    const createTimer = () => {
-      if (typeof setTimeout === 'undefined') return null;
-      
-      const performCleanupWithCheck = () => {
-        if (!this.isDestroyed.value) {
-          this.performCleanup();
-          // 递归调用以保持清理循环
-          this.cleanupInterval = createTimer();
-        }
-      };
-
-      return setTimeout(performCleanupWithCheck, this.CLEANUP_INTERVAL);
-    };
-
-    this.cleanupInterval = createTimer();
+    if (typeof setTimeout === 'undefined') return;
+    
+    // 使用标准的 setInterval 避免递归定时器累积
+    this.cleanupInterval = setInterval(() => {
+      if (!this.isDestroyed.value) {
+        this.performCleanup();
+      } else {
+        this.stopCleanup();
+      }
+    }, this.CLEANUP_INTERVAL);
   }
 
   private performCleanup(): void {
@@ -173,26 +167,31 @@ class RateLimitManager {
         }
       }
 
-      // Edge Runtime中的额外内存压力处理
+      // Edge Runtime中的额外内存压力处理 - 优化版本
       if (isEdgeRuntime()) {
-        // 如果Map过大，进行强制清理
         const maxSize = 10000;
+        
+        // 优化的 Map 清理：逐个删除旧记录而非重建
         if (this.store.hourlyRequests.size > maxSize) {
-          const entries = Array.from(this.store.hourlyRequests.entries());
-          entries.sort((a, b) => b[1].timestamp - a[1].timestamp);
-          this.store.hourlyRequests.clear();
-          entries.slice(0, maxSize / 2).forEach(([ip, record]) => {
-            this.store.hourlyRequests.set(ip, record);
-          });
+          let deleteCount = this.store.hourlyRequests.size - (maxSize / 2);
+          for (const [ip, record] of this.store.hourlyRequests.entries()) {
+            if (deleteCount <= 0) break;
+            if (record.timestamp < now - 1000 * 60 * 30) { // 删除30分钟前的记录
+              this.store.hourlyRequests.delete(ip);
+              deleteCount--;
+            }
+          }
         }
         
         if (this.store.minutelyRequests.size > maxSize) {
-          const entries = Array.from(this.store.minutelyRequests.entries());
-          entries.sort((a, b) => b[1].timestamp - a[1].timestamp);
-          this.store.minutelyRequests.clear();
-          entries.slice(0, maxSize / 2).forEach(([ip, record]) => {
-            this.store.minutelyRequests.set(ip, record);
-          });
+          let deleteCount = this.store.minutelyRequests.size - (maxSize / 2);
+          for (const [ip, record] of this.store.minutelyRequests.entries()) {
+            if (deleteCount <= 0) break;
+            if (record.timestamp < now - 1000 * 30) { // 删除30秒前的记录
+              this.store.minutelyRequests.delete(ip);
+              deleteCount--;
+            }
+          }
         }
       }
     } catch (error) {
@@ -203,8 +202,8 @@ class RateLimitManager {
 
   private stopCleanup(): void {
     if (this.cleanupInterval !== null) {
-      if (typeof clearTimeout !== 'undefined') {
-        clearTimeout(this.cleanupInterval as number);
+      if (typeof clearInterval !== 'undefined') {
+        clearInterval(this.cleanupInterval as number);
       }
       this.cleanupInterval = null;
     }
