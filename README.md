@@ -1,151 +1,170 @@
-# AI Icon Generator
-[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/samzong/ai-icon-generator)
+<p align="center">
+  <img src="public/logo.png" alt="AI Icon Generator Logo" width="128">
+</p>
 
-基于 OpenAI DALL-E 3 的专业图标生成工具。
+<p align="center">
+  <b>Professional AI-powered icon generator built with OpenAI gpt-image-1</b>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-blue" alt="License">
+  <a href="https://deepwiki.com/samzong/ai-icon-generator"><img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki"></a>
+</p>
+
+# AI Icon Generator
+
+A professional AI icon generation tool powered by OpenAI gpt-image-1, providing high-quality custom icon generation services for designers, developers, and creators.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsamzong%2Fai-icon-generator&env=OPENAI_API_KEY,OPENAI_API_BASE_URL,NODE_VERSION&envDescription=API%20密钥和端点配置&envLink=https%3A%2F%2Fgithub.com%2Fsamzong%2Fai-icon-generator%23%E9%85%8D%E7%BD%AE%E7%8E%AF%E5%A2%83%E5%8F%98%E9%87%8F&project-name=ai-icon-generator&repository-name=ai-icon-generator&demo-title=AI%20Icon%20Generator&demo-description=基于%20OpenAI%20DALL-E%203%20的专业图标生成工具&demo-url=https%3A%2F%2Fai-icon-generator.vercel.app&demo-image=https%3A%2F%2Fraw.githubusercontent.com%2Fsamzong%2Fai-icon-generator%2Fmain%2Fpublic%2Fdemo.png)
 
-[在线预览](https://ai-icon-generator-fawn.vercel.app)
+[🚀 Try it Online](https://ai-icon-generator-fawn.vercel.app)
 
-## 特性
+## Key Features
 
-- 🎨 使用 DALL-E 3 生成高质量图标
-- 🎯 支持多种图标风格
-- 💾 支持多种导出格式
-- 🌓 支持深色/浅色主题
-- 📱 响应式设计
-- ⚡️ 快速生成和预览
-- 🔄 支持自定义 API 端点
-- 🚀 一键部署到 Vercel
+### AI-Powered Icon Generation
 
-## 技术栈
+- **gpt-image-1 Technology**: Leverages OpenAI's advanced image generation model
+- **Natural Language Input**: Simply describe your icon in plain text
+- **High-Quality Output**: Generate crisp, detailed icons suitable for any application
+- **Creative Intelligence**: AI understands context and design principles
 
-- Node.js >= 20.0.0
-- Next.js 15
-- React 19
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- OpenAI API
+### Versatile Style Options
 
-## 系统要求
+- **Multiple Preset Styles**: Flat, 3D, outlined, gradient, and more
+- **Custom Style Control**: Fine-tune appearance through descriptive prompts
+- **Consistent Design**: Maintain visual coherence across icon sets
+- **Brand Alignment**: Generate icons that match your brand aesthetic
 
-- Node.js 20.0.0 或更高版本
-- npm 10.0.0 或更高版本（推荐）
+### Multiple Export Formats
 
-## 开始使用
+- **PNG**: Perfect for web and app usage with transparency support
+- **ICO**: Windows application icons with multi-resolution support
+- **ICNS**: macOS application icons optimized for Apple platforms
+- **JPEG**: Universal format for documents and presentations
 
-1. 确保您的 Node.js 版本符合要求
+### International Support
+
+- **Bilingual Interface**: Full English and Chinese language support
+- **Smart Language Detection**: Automatically adapts to user preferences
+- **Localized Content**: All interface elements properly translated
+
+### Modern User Experience
+
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile
+- **Dark/Light Theme**: Toggle between themes for comfortable viewing
+- **Intuitive Interface**: Clean, user-friendly design requiring no learning curve
+- **Real-time Preview**: See your icons as they're generated
+
+### ⚡ Enhanced Productivity
+
+- **Fast Generation**: Optimized API calls for quick results
+- **Generation History**: Automatically saves your creations for easy access
+- **Smart Caching**: Prevents duplicate generations to save time and resources
+- **Batch Processing**: Generate multiple related icons efficiently
+
+## Perfect for Various Use Cases
+
+### 👨‍💻 Developers
+
+- **App Icons**: Generate professional icons for mobile and desktop applications
+- **Website Icons**: Create favicons, feature icons, and UI elements
+- **Prototype Design**: Quickly generate placeholder icons for rapid prototyping
+- **Documentation**: Enhance technical documentation with relevant icons
+
+### 🎨 Designers
+
+- **Creative Inspiration**: Get AI-generated concepts to spark new ideas
+- **Rapid Iteration**: Quickly generate multiple design variations
+- **Client Presentations**: Provide diverse options for client review
+- **Icon Libraries**: Build comprehensive icon sets for design systems
+
+### 📈 Business Users
+
+- **Brand Assets**: Generate icons that align with brand identity
+- **Marketing Materials**: Create icons for presentations and marketing content
+- **Internal Tools**: Design consistent icons for enterprise applications
+- **Product Features**: Visualize product features and services
+
+### 🎓 Educators & Students
+
+- **Educational Content**: Generate icons for learning materials
+- **Presentation Graphics**: Enhance slides and educational presentations
+- **Learning Tools**: Create visual aids for better comprehension
+- **Student Projects**: Access professional-quality icons for academic work
+
+## 🔧 Flexible Configuration
+
+### API Provider Support
+
+- **OpenAI Official**: Direct integration with OpenAI's gpt-image-1 API
+- **Custom Endpoints**: Configure alternative API providers
+- **Proxy Support**: Use compatible third-party services like [Free DALL-E Proxy](https://github.com/Feiyuyu0503/free-dall-e-proxy)
+- **Parameter Control**: Adjust image size, quality, and generation parameters
+
+### Rate Limiting & Optimization
+
+- **Built-in Rate Control**: Prevents API quota overuse
+- **Smart Caching**: Avoids duplicate requests for identical prompts
+- **Usage Monitoring**: Track your API usage and costs
+- **Batch Optimization**: Efficient handling of multiple requests
+
+## Deploy to Vercel
+
+### Quick Deployment
+
+1. Click the "Deploy with Vercel" button above
+2. Connect your GitHub account
+3. Configure environment variables:
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `OPENAI_API_BASE_URL`: API endpoint (optional)
+4. Deploy with one click
+
+### Environment Variables
+
 ```bash
-node --version  # 应该显示 v20.0.0 或更高版本
+OPENAI_API_KEY=your-openai-api-key
+OPENAI_API_BASE_URL=https://api.openai.com/v1  # or compatible endpoint
+MAX_REQUESTS_PER_HOUR=50                        # optional: hourly rate limit
+MAX_REQUESTS_PER_MINUTE=2                       # optional: per-minute rate limit
 ```
 
-2. 克隆项目
-```bash
-git clone https://github.com/samzong/ai-icon-generator.git
-cd ai-icon-generator
-```
+### Automatic Updates
 
-3. 安装依赖
-```bash
-npm install
-```
+- Push to main branch triggers automatic redeployment
+- Environment variable changes trigger rebuilds
+- Monitor deployment status in Vercel Dashboard
 
-4. 配置环境变量
-```bash
-cp .env.example .env
-```
-然后编辑 `.env` 文件，添加必要的配置：
-- OPENAI_API_KEY：您的 OpenAI API 密钥
-- OPENAI_API_BASE_URL：API 端点（可选）
+## How to Use
 
-## 使用 DALL-E 代理
+### Basic Usage
 
-本项目支持使用 [Free DALL-E Proxy](https://github.com/Feiyuyu0503/free-dall-e-proxy) 作为 OpenAI API 的替代方案。
+1. **Describe Your Icon**: Enter a clear description of the icon you want (e.g., "blue cloud icon with silver outline")
+2. **Choose Style**: Select from preset styles or customize through descriptive words
+3. **Generate**: Click the generate button and let AI create your icon
+4. **Preview & Refine**: Review the result and adjust your description if needed
+5. **Export**: Download in your preferred format (PNG, ICO, ICNS, JPEG)
 
-### 配置步骤
+### Pro Tips
 
-1. 在 `.env` 文件中设置代理端点：
-```bash
-OPENAI_API_BASE_URL=https://dalle.feiyuyu.net/v1
-```
+- **Be Specific**: Use descriptive adjectives for colors, materials, and styles
+- **Style Mixing**: Combine multiple style elements in your description
+- **Batch Generation**: Modify keywords to create icon sets
+- **Use History**: Leverage the history feature to revisit and reuse previous generations
 
-2. 使用您的 API 密钥：
-```bash
-OPENAI_API_KEY=your-api-key
-```
+### Example Prompts
 
-### 代理特性
+- "Modern minimalist shopping cart icon in blue gradient"
+- "Flat design email icon with rounded corners"
+- "3D metallic gear icon with chrome finish"
+- "Hand-drawn style tree icon in earth tones"
 
-- 完全兼容 OpenAI API
-- 支持 DALL-E 3 模型
-- 免费使用（基于 Coze 平台）
-- 支持标准的图片生成参数
+## Privacy & Security
 
-### 注意事项
+- **Local Storage**: Generated icons are stored only in your browser
+- **API Security**: Support for custom API endpoints to protect your keys
+- **No Data Collection**: We don't collect personal information
+- **Privacy First**: Your creations remain private and secure
 
-- 建议在开发环境中使用
-- 遵循代理服务的使用规范
-- 注意请求频率限制
-- 仅用于教育和学习目的
+## License
 
-## Vercel 部署
-
-本项目可以轻松部署到 Vercel 平台。
-
-### 部署步骤
-
-1. Fork 本项目到您的 GitHub 账号
-
-2. 在 Vercel 中导入项目：
-   - 登录 [Vercel](https://vercel.com)
-   - 点击 "New Project"
-   - 选择您 fork 的仓库
-   - 点击 "Import"
-
-3. 配置环境变量：
-   - 在项目设置中找到 "Environment Variables"
-   - 添加以下环境变量：
-     ```
-     OPENAI_API_KEY=your-api-key
-     OPENAI_API_BASE_URL=https://dalle.feiyuyu.net/v1
-     NODE_VERSION=20.11.0
-     ```
-
-4. 部署设置：
-   - Framework Preset: Next.js
-   - Node.js Version: 20.x（会自动使用 NODE_VERSION 环境变量的值）
-   - Build Command: `next build`
-   - Output Directory: `.next`
-
-5. 点击 "Deploy" 开始部署
-
-### 更新部署
-
-- 推送到 main 分支的代码会自动触发重新部署
-- 环境变量的修改会触发重新构建
-- 可以在 Vercel Dashboard 中查看部署状态和日志
-
-## 本地开发
-
-### 启动开发服务器
-```bash
-npm run dev
-```
-
-### 构建生产版本
-```bash
-npm run build
-```
-
-## 使用方法
-
-1. 输入图标描述
-2. 选择图标风格
-3. 点击生成按钮
-4. 等待生成完成
-5. 下载所需格式
-
-## 许可证
-
-MIT License
+MIT License - Free to use, modify, and distribute
