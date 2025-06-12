@@ -1,8 +1,8 @@
 {
   "name": "ai-icon-generator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": false,
-  "description": "基于 OpenAI DALL-E 3 的专业图标生成工具",
+  "description": "基于 LLMs 的图标生成工具",
   "author": "samzong",
   "license": "MIT",
   "repository": {
@@ -16,7 +16,12 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "release": "standard-version",
+    "release:patch": "standard-version --release-as patch",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major",
+    "release:prerelease": "standard-version --prerelease"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.4",
@@ -51,6 +56,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.1.3",
     "postcss": "^8",
+    "standard-version": "^9.5.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },
