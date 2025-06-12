@@ -9,9 +9,11 @@ import {
   parseApiResponse
 } from "./icon-generation-core"
 
-if (!process.env.OPENAI_API_KEY) {
-  console.error("Missing OPENAI_API_KEY environment variable")
-  process.exit(1)
+// 在 Edge Runtime 中，我们不能使用 process.exit，改为运行时检查
+function validateEnvironment() {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("Missing OPENAI_API_KEY environment variable")
+  }
 }
 
 // 客户端缓存管理（避免全局状态污染）
@@ -50,6 +52,7 @@ class OpenAIClientManager {
     let baseURL: string | undefined
 
     if (config.selectedProvider === 'default') {
+      validateEnvironment() // 验证环境变量
       apiKey = process.env.OPENAI_API_KEY!
       baseURL = process.env.OPENAI_API_BASE_URL
     } else {
