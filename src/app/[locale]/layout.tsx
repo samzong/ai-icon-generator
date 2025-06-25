@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Oxanium, Merriweather, Fira_Code } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { ThemeProvider } from "@/components/theme-provider";
@@ -6,6 +7,22 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { RateLimitStatus } from "@/components/RateLimitStatus";
 import { Analytics } from "@vercel/analytics/react";
 import "../globals.css";
+
+const oxanium = Oxanium({
+  subsets: ['latin'],
+  variable: '--font-sans',
+});
+
+const merriweather = Merriweather({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-serif',
+});
+
+const firaCode = Fira_Code({
+  subsets: ['latin'],
+  variable: '--font-mono',
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
@@ -56,7 +73,7 @@ export default async function LocaleLayout({
 
     return (
       <html lang={locale} suppressHydrationWarning>
-        <body className="font-sans">
+        <body className={`${oxanium.variable} ${merriweather.variable} ${firaCode.variable} font-sans`}>
           <NextIntlClientProvider messages={messages}>
             <ThemeProvider
               attribute="class"
@@ -85,7 +102,7 @@ export default async function LocaleLayout({
       const fallbackMessages = await getMessages({ locale: 'en' });
       return (
         <html lang="en" suppressHydrationWarning>
-          <body className="font-sans">
+          <body className={`${oxanium.variable} ${merriweather.variable} ${firaCode.variable} font-sans`}>
             <NextIntlClientProvider messages={fallbackMessages}>
               <ThemeProvider
                 attribute="class"
@@ -109,7 +126,7 @@ export default async function LocaleLayout({
       console.warn('Fallback messages also failed:', _fallbackError);
       return (
         <html lang="en" suppressHydrationWarning>
-          <body className="font-sans">
+          <body className={`${oxanium.variable} ${merriweather.variable} ${firaCode.variable} font-sans`}>
             <div className="min-h-screen bg-background">
               <main className="container mx-auto py-6">{children}</main>
             </div>

@@ -2,39 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 使用本地字体文件 */
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Medium.woff2') format('woff2');
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/Inter-Bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-/* 添加字体回退 */
-@font-face {
-  font-family: 'Inter Fallback';
-  src: local('-apple-system'), local('BlinkMacSystemFont'), local('Segoe UI'),
-       local('Roboto'), local('Helvetica Neue'), local('Arial'), local('sans-serif');
-  font-display: swap;
-}
-
 @layer base {
   :root {
     --background: 0 0% 100%;
