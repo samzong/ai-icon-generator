@@ -1,23 +1,4 @@
 {
-  "title": "AI Icon Generator",
-  "description": "Generate icons using AI.",
-  "buttons": {
-    "generate": "Generate",
-    "download": "Download",
-    "clear": "Clear",
-    "save": "Save"
-  },
-  "form": {
-    "placeholder": "Enter your prompt here...",
-    "style": "Style",
-    "color": "Color",
-    "size": "Size"
-  },
-  "messages": {
-    "success": "Icon generated successfully!",
-    "error": "Failed to generate icon",
-    "loading": "Generating your icon..."
-  },
   "page": {
     "title": "AI Icon Generator",
     "subtitle": "Generate professional icon designs using AI, supporting multiple styles and formats"
@@ -94,7 +75,6 @@
   "apiConfig": {
     "title": "API Configuration",
     "description": "Configure your AI icon generation service provider",
-    "buttonText": "API Key",
     "provider": "Service Provider",
     "getApiKey": "Get API Key",
     "apiKey": "API Key",
@@ -108,7 +88,6 @@
       "configured": "Configured"
     },
     "defaultService": {
-      "title": "Default Service Description",
       "features": [
         "Uses system pre-configured API service",
         "No API Key configuration required, ready to use",
@@ -123,21 +102,6 @@
     "security": {
       "title": "Security Notice:",
       "description": "API Key is only stored locally in your browser and will not be sent to other servers"
-    },
-    "apiFlow": {
-      "title": "🔄 API Call Flow Explanation",
-      "default": {
-        "flow": "• Browser → Local API(/api/generate) → System Default Service",
-        "description": "• Uses server-side configured API keys for security"
-      },
-      "custom": {
-        "flow": "• Browser → Direct API Call → {provider}",
-        "descriptions": [
-          "• Your API key stays in your browser and is never sent to our servers",
-          "• Direct connection to the AI service provider for maximum privacy",
-          "• May encounter CORS restrictions with some providers"
-        ]
-      }
     },
     "providers": {
       "default": {
@@ -211,7 +175,8 @@
       "minutes": "minutes",
       "seconds": "seconds",
       "refreshLimitStatus": "Refresh limit status",
-      "closeError": "Close error message"
+      "closeError": "Close error message",
+      "unknownError": "Unknown error"
     }
   },
   "notFound": {
@@ -222,9 +187,5 @@
   "siteHeader": {
     "github": "GitHub",
     "switchLanguage": "Switch language"
-  },
-  "site": {
-    "name": "AI Icon Generator222",
-    "description": "Generate professional icon designs using AI, supporting multiple styles and formats"
   }
 }
