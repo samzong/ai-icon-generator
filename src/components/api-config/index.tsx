@@ -21,7 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Settings } from "lucide-react";
+import { ExternalLink, Settings, Shield, CheckCircle2 } from "lucide-react";
 import {
   getApiConfig,
   setApiConfig,
@@ -141,6 +141,23 @@ export function ApiConfigDialog() {
         </DialogHeader>
 
         <div className="space-y-4">
+          {/* Security Notice */}
+          <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/50 p-4">
+            <div className="flex gap-3">
+              <div className="flex-shrink-0 mt-0.5">
+                <Shield className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-1">
+                  {t('security.title')}
+                </div>
+                <div className="text-xs text-blue-700 dark:text-blue-300 leading-relaxed">
+                  {t('security.description')}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Provider Selection */}
           <div className="space-y-2">
             <Label>{t('provider')}</Label>
@@ -149,25 +166,46 @@ export function ApiConfigDialog() {
               onValueChange={handleProviderChange}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue>
+                  {config.selectedProvider && (() => {
+                    const selectedInfo = PROVIDER_INFO_TRANSLATED[config.selectedProvider];
+                    const selectedKey = config.selectedProvider;
+                    return (
+                      <div className="flex items-center gap-2">
+                        <span>{selectedInfo.name}</span>
+                        {selectedKey === "default" ? (
+                          <Badge variant="default" className="text-xs">
+                            {t('badges.default')}
+                          </Badge>
+                        ) : (
+                          config.providers[selectedKey as ApiProvider].apiKey && (
+                            <Badge variant="secondary" className="text-xs">
+                              {t('badges.configured')}
+                            </Badge>
+                          )
+                        )}
+                      </div>
+                    );
+                  })()}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(PROVIDER_INFO_TRANSLATED).map(([key, info]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center justify-between w-full">
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <div className="font-medium">{info.name}</div>
                         <div className="text-xs text-muted-foreground">
                           {info.description}
                         </div>
                       </div>
                       {key === "default" ? (
-                        <Badge variant="default" className="text-xs ml-2">
+                        <Badge variant="default" className="text-xs ml-2 shrink-0">
                           {t('badges.default')}
                         </Badge>
                       ) : (
                         config.providers[key as ApiProvider].apiKey && (
-                          <Badge variant="secondary" className="text-xs ml-2">
+                          <Badge variant="secondary" className="text-xs ml-2 shrink-0">
                             {t('badges.configured')}
                           </Badge>
                         )
@@ -198,13 +236,15 @@ export function ApiConfigDialog() {
 
             {/* Default Service Info */}
             {selectedProvider === "default" && (
-              <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-                <div className="font-medium mb-2">{t('defaultService.title')}</div>
-                <ul className="list-disc list-inside space-y-1">
+              <div className="space-y-3">
+                <div className="space-y-2">
                   {(t.raw('defaultService.features') as string[]).map((feature: string, index: number) => (
-                    <li key={index}>{feature}</li>
+                    <div key={index} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 shrink-0" />
+                      <span className="leading-relaxed">{feature}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             )}
 
@@ -306,30 +346,6 @@ export function ApiConfigDialog() {
               </ul>
             </div>
           )}
-
-          {/* Security Notice */}
-          <div className="text-xs text-muted-foreground bg-muted p-2 rounded">
-            <span className="font-medium">{t('security.title')}</span>
-            {t('security.description')}
-          </div>
-
-          {/* API Call Flow Explanation */}
-          <div className="text-xs text-muted-foreground bg-blue-50 dark:bg-blue-950 p-3 rounded">
-            <div className="font-medium mb-2">{t('apiFlow.title')}</div>
-            {selectedProvider === "default" ? (
-              <div className="space-y-1">
-                <div>{t('apiFlow.default.flow')}</div>
-                <div>{t('apiFlow.default.description')}</div>
-              </div>
-            ) : (
-              <div className="space-y-1">
-                <div>{t('apiFlow.custom.flow', { provider: selectedProviderInfo.name })}</div>
-                {(t.raw('apiFlow.custom.descriptions') as string[]).map((description: string, index: number) => (
-                  <div key={index}>{description}</div>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         <DialogFooter>
