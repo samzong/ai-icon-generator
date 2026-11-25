@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.1.3](https://github.com/samzong/ai-icon-generator/compare/v0.1.2...v0.1.3) (2026-11-25)
+
+### Changes
+
+* Updated the API configuration dialog and provider badges.
+* Switched fonts to Google Fonts and simplified English and Chinese translations.
+* Validated release tags and notes, isolated prerelease channels, and updated Next.js to 15.1.12.
+
 ### [0.1.2](https://github.com/samzong/ai-icon-generator/compare/v0.1.1...v0.1.2) (2025-06-12)
 
 
